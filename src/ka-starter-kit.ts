@@ -1,12 +1,12 @@
 import { LitElement, html, css } from 'lit';
-import { property, customElement } from 'lit/decorators.js';
+import { customElement } from 'lit/decorators.js';
 
-const logo = new URL('../../assets/open-wc-logo.svg', import.meta.url).href;
+const SCOPES: [string] = [
+  'nudges:read'
+];
 
 @customElement('ka-starter-kit')
 export class KnudgeAPIStarterKit extends LitElement {
-  @property({ type: String }) header = 'My app';
-
   static styles = css`
     :host {
       min-height: 100vh;
@@ -26,20 +26,6 @@ export class KnudgeAPIStarterKit extends LitElement {
       flex-grow: 1;
     }
 
-    .logo {
-      margin-top: 36px;
-      animation: app-logo-spin infinite 20s linear;
-    }
-
-    @keyframes app-logo-spin {
-      from {
-        transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
     .app-footer {
       font-size: calc(12px + 0.5vmin);
       align-items: center;
@@ -48,33 +34,48 @@ export class KnudgeAPIStarterKit extends LitElement {
     .app-footer a {
       margin-left: 5px;
     }
+
+    .button {
+      all: unset;
+      padding: auto;
+    }
   `;
+
+  get knudgeURL(): string {
+    const url = new URL('https://app.knudge.dev/oauth/authorize');
+
+    url.searchParams.append('client_id', 'TODO');
+    url.searchParams.append('response_type', 'code');
+
+    let scopesEncoded = SCOPES
+      .map(scope => scope.replace(':', '%3A'))
+      .join('+');
+
+    url.searchParams.append('scope', scopesEncoded);
+
+    return url.toString();
+  }
+
+  // EVENT HANDLERS ////////////////////////////////////////////////////////////
+
+  handleClickConnectKnudgeAccount() {
+
+  }
+
+  // RENDER ////////////////////////////////////////////////////////////////////
 
   render() {
     return html`
       <main>
-        <div class="logo"><img alt="open-wc logo" src=${logo} /></div>
-        <h1>${this.header}</h1>
+        <h1>Knudge API starter app</h1>
 
-        <p>Edit <code>src/KaStarterKit.ts</code> and save to reload.</p>
-        <a
-          class="app-link"
-          href="https://open-wc.org/guides/developing-components/code-examples"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Code examples
+        <a class="button" href="${ this.knudgeURL }">
+          Connect knudge account
         </a>
       </main>
 
       <p class="app-footer">
-        🚽 Made with love by
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          href="https://github.com/open-wc"
-          >open-wc</a
-        >.
+        <a href="https://app.knudge.com/api-docs">Knudge API docs</a>
       </p>
     `;
   }
