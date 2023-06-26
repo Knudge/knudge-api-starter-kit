@@ -20,5 +20,9 @@
 /dist/
 /out-tsc/
 
+## local dev
+/certs/
+/.oauth*
+
 storybook-static
 custom-elements.json

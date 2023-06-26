@@ -1,26 +1,43 @@
-// import { hmrPlugin, presets } from '@open-wc/dev-server-hmr';
+import proxy from 'koa-proxies';
 
-/** Use Hot Module replacement by adding --hmr to the start command */
-const hmr = process.argv.includes('--hmr');
+import devCertificateFor from './web-dev-server/dev-certificates-for.mjs';
+
+const hostname = 'knudge-api-starter-kit.local'
+
+const urlAPI = new URL(`https://${ hostname }:10443`);
+const urlWeb = new URL(`https://${ hostname }:9443`);
+
+const certificate = await devCertificateFor(hostname);
 
 export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
+  // Routing
+  hostname,
+  port: +urlWeb.port,
+
+  // HTTP/2 (forces https) and SSL
+  http2: true,
+  sslCert: certificate.certPath,
+  sslKey: certificate.keyPath,
+
   open: '/',
-  watch: !hmr,
-  /** Resolve bare module imports */
+  watch: true,
+
+  // Resolve bare module imports
   nodeResolve: {
     exportConditions: ['browser', 'development'],
   },
-  
-  /** Compile JS for older browsers. Requires @web/dev-server-esbuild plugin */
+
+  middleware: [
+    proxy('/api', {
+      target: urlAPI.toString()
+    })
+  ],
+
+  // Compile JS for older browsers. Requires @web/dev-server-esbuild plugin
   // esbuildTarget: 'auto'
 
-  /** Set appIndex to enable SPA routing */
+  // Enables SPA routing
   appIndex: './index.html',
-
-  plugins: [
-    /** Use Hot Module Replacement by uncommenting. Requires @open-wc/dev-server-hmr plugin */
-    // hmr && hmrPlugin({ exclude: ['**/*/node_modules/**/*'], presets: [presets.litElement] }),
-  ],
 
   // See documentation for all available options
 });
