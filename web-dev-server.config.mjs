@@ -1,6 +1,12 @@
 import proxy from 'koa-proxies';
 
+import rollupReplace from '@rollup/plugin-replace'
+import { fromRollup } from '@web/dev-server-rollup';
+
+import replacements from './rollup-replacements.mjs';
 import devCertificateFor from './web-dev-server/dev-certificates-for.mjs';
+
+const replace = fromRollup(rollupReplace);
 
 const hostname = 'knudge-api-starter-kit.local'
 
@@ -24,8 +30,12 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
 
   // Resolve bare module imports
   nodeResolve: {
-    exportConditions: ['browser', 'development'],
+    exportConditions: ['browser', 'development']
   },
+
+  plugins: [
+    replace({ preventAssignment: true, values: replacements }),
+  ],
 
   middleware: [
     proxy('/api', {
@@ -38,6 +48,4 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
 
   // Enables SPA routing
   appIndex: './index.html',
-
-  // See documentation for all available options
 });

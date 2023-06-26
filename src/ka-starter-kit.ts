@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-const SCOPES: [string] = [
+const SCOPES: string[] = [
   'nudges:read'
 ];
 
@@ -44,14 +44,9 @@ export class KnudgeAPIStarterKit extends LitElement {
   get knudgeURL(): string {
     const url = new URL('https://app.knudge.dev/oauth/authorize');
 
-    url.searchParams.append('client_id', 'TODO');
+    url.searchParams.append('client_id', process.env.OAUTH_CLIENT_ID ?? '');
     url.searchParams.append('response_type', 'code');
-
-    let scopesEncoded = SCOPES
-      .map(scope => scope.replace(':', '%3A'))
-      .join('+');
-
-    url.searchParams.append('scope', scopesEncoded);
+    url.searchParams.append('scope', SCOPES.join('+'));
 
     return url.toString();
   }

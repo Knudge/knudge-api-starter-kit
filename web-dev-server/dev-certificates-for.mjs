@@ -12,9 +12,7 @@ export default async function devCertificateFor(domains, {
 
   try {
     await fs.mkdir(prefix);
-  } catch (err) {
-    console.error(err);
-  }
+  } catch {}
 
   await Promise.all([
     fs.writeFile(certPath, cert),
