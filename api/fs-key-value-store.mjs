@@ -2,11 +2,11 @@ import fs from 'node:fs/promises';
 
 const TEMP_PATH = './tmp/db';
 
-export async function remove(key: string): Promise<void> {
+export async function remove(key) {
   await fs.rm(getPath(key));
 }
 
-export async function write(key: string, data: string): Promise<void> {
+export async function write(key, data) {
   if (!await fs.stat(TEMP_PATH).then(stat => stat.isDirectory())) {
     await fs.mkdir(TEMP_PATH, { recursive: true });
   }
@@ -16,10 +16,10 @@ export async function write(key: string, data: string): Promise<void> {
   });
 }
 
-export async function read(key: string): Promise<string> {
+export async function read(key) {
   return (await fs.readFile(getPath(key))).toString('utf8');
 }
 
-function getPath(key: string) {
+function getPath(key) {
   return `${ TEMP_PATH }/${ key }`;
 }

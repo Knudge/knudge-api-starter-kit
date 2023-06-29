@@ -1,8 +1,8 @@
 import { html } from 'lit';
 import { fixture, expect } from '@open-wc/testing';
 
-import type { KnudgeAPIStarterKit } from '../src/ka-starter-kit.js';
-import '../src/ka-starter-kit.js';
+import type { KnudgeAPIStarterKit } from '../src/elements/ka-starter-kit.js';
+import '../src/elements/ka-starter-kit.js';
 
 describe('KaStarterKit', () => {
   let element: KnudgeAPIStarterKit;

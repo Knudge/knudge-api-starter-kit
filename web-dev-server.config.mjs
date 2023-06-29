@@ -4,28 +4,26 @@ import rollupReplace from '@rollup/plugin-replace'
 import { fromRollup } from '@web/dev-server-rollup';
 
 import replacements from './rollup-replacements.mjs';
-import devCertificateFor from './web-dev-server/dev-certificates-for.mjs';
 
 const replace = fromRollup(rollupReplace);
 
-const hostname = 'knudge-api-starter-kit.local'
-
-const urlAPI = new URL(`https://${ hostname }:10443`);
-const urlWeb = new URL(`https://${ hostname }:9443`);
-
-const certificate = await devCertificateFor(hostname);
+import {
+  CERTIFICATE,
+  HOSTNAME,
+  URL_API,
+  URL_WEB
+} from './config.mjs';
 
 export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
   // Routing
-  hostname,
-  port: +urlWeb.port,
+  hostname: HOSTNAME,
+  port: +URL_WEB.port,
 
   // HTTP/2 (forces https) and SSL
   http2: true,
-  sslCert: certificate.certPath,
-  sslKey: certificate.keyPath,
+  sslCert: CERTIFICATE.certPath,
+  sslKey: CERTIFICATE.keyPath,
 
-  open: '/',
   watch: true,
 
   // Resolve bare module imports
@@ -39,7 +37,7 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
 
   middleware: [
     proxy('/api', {
-      target: urlAPI.toString()
+      target: URL_API.toString()
     })
   ],
 

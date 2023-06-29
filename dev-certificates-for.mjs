@@ -19,5 +19,5 @@ export default async function devCertificateFor(domains, {
     fs.writeFile(keyPath, key)
   ]);
 
-  return { certPath, keyPath };
+  return { cert, certPath, key, keyPath };
 }
