@@ -2,6 +2,7 @@ import routes from './routes/routes.mjs'
 import joi from 'joi';
 
 import * as kvStore from './fs-key-value-store.mjs';
+import { URL_WEB } from '../config.mjs';
 
 export default async function handleAPIRequest(ctx) {
   const routeMethods = routes[ctx.request.path];
@@ -9,7 +10,7 @@ export default async function handleAPIRequest(ctx) {
   if (!routeMethods) {
     return ctx.throw(404, 'Unknown route');
   }
-  
+
   const route = routeMethods[ctx.request.method];
 
   if (!route) {
@@ -24,5 +25,7 @@ export default async function handleAPIRequest(ctx) {
     joi.attempt(ctx.body, route.bodySchema, { stripUnknown: true });
   }
 
-  return await route.handle(ctx);
+  ctx.set('content-type', 'application/json');
+
+  await route.handle(ctx);
 }
