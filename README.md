@@ -1,6 +1,15 @@
 Knudge API starter kit
 ======================
 
+Getting Started
+---------------
+
+1. Rename `.env.example` to `.env`
+2. Replace missing environment variables with your own
+3. Run `npm run start`. Note that you'll need to be an administrator on your
+   computer to allow the `devcert` package to install certificates, which allows
+   you to serve the local app over HTTPS.
+
 
 Scripts
 -------

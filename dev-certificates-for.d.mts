@@ -1,4 +1,5 @@
 type DevCertResult = {
+  caPath?: string
   cert: any;
   certPath: string;
   key: any;
@@ -6,6 +7,7 @@ type DevCertResult = {
 }
 
 export default function devCertificateFor(domains: string[], options: {
+  getCaPath: boolean,
   prefix: string,
   name: string
 } | undefined): Promise<DevCertResult>;

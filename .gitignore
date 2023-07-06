@@ -23,6 +23,7 @@
 ## local dev
 /certs/
 /.oauth*
+.env
 
 storybook-static
 custom-elements.json

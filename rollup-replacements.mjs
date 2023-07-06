@@ -1,12 +1,7 @@
-import fs from 'node:fs';
-import { KNUDGE_ORIGIN } from './config.mjs';
+import { KNUDGE_ORIGIN, KNUDGE_CLIENT_ID, URL_API } from './config.mjs';
 
 export default {
-  'process.env.KNUDGE_ORIGIN':       JSON.stringify(KNUDGE_ORIGIN),
-  'process.env.OAUTH_CLIENT_ID':     loadAsString('./.oauth-client-id'),
-  'process.env.OAUTH_CLIENT_SECRET': loadAsString('./.oauth-secret')
+  'process.env.KNUDGE_CLIENT_ID': JSON.stringify(KNUDGE_CLIENT_ID),
+  'process.env.KNUDGE_ORIGIN':    JSON.stringify(KNUDGE_ORIGIN),
+  'process.env.URL_API':          JSON.stringify(URL_API),
 };
-
-function loadAsString(path) {
-  return JSON.stringify(fs.readFileSync(path).toString('utf8'));
-}

@@ -1,5 +1,3 @@
-import proxy from 'koa-proxies';
-
 import rollupReplace from '@rollup/plugin-replace'
 import { fromRollup } from '@web/dev-server-rollup';
 
@@ -36,9 +34,6 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
   ],
 
   middleware: [
-    proxy('/api', {
-      target: URL_API.toString()
-    })
   ],
 
   // Compile JS for older browsers. Requires @web/dev-server-esbuild plugin
