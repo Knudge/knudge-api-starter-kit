@@ -1,7 +1,10 @@
+import util from 'node:util';
+
 import { customAlphabet } from 'nanoid/async';
 import joi from 'joi';
+
 import * as keyValueStore from '../fs-key-value-store.mjs';
-import { KNUDGE_ORIGIN } from '../../config.mjs'
+import { KNUDGE_CLIENT_ID, KNUDGE_ORIGIN, KNUDGE_SECRET } from '../../config.mjs'
 
 const generateCookie = customAlphabet('23456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 20);
 
@@ -30,27 +33,50 @@ export default {
  * of the user.
  */
 async function handleLink(ctx) {
-  const tokenResult = await fetch(`${ KNUDGE_ORIGIN }/api/✨/oauth/token`, {
-    headers: {
-      'accept': 'application/json',
-      'content-type': 'application/x-www-form-urlencoded'
-    },
-    body: new URLSearchParams({
-      code: ctx.body.code,
-      grant_type: 'authorization_code'
-    }).toString()
-  });
+  let tokenResult;
 
-  if (!tokenResult.ok) {
-    return ctx.throw(tokenResult.status, tokenResult.statusText);
+  try {
+    let authorizationBase64 = Buffer
+      .from(`${ KNUDGE_CLIENT_ID }:${ KNUDGE_SECRET }`)
+      .toString('base64');
+    tokenResult = await fetch(`${ KNUDGE_ORIGIN }/api/xn--0ci/oauth/token`, {
+      headers: {
+        'authorization': `basic ${ authorizationBase64 }`,
+        'accept': 'application/json',
+        'content-type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({
+        code: ctx.request.body.code,
+        grant_type: 'authorization_code'
+      }).toString(),
+      method: 'POST'
+    });
+  } catch (err) {
+    console.error(util.inspect(err, { depth: Infinity, colors: true }))
   }
 
-  const cookie = await generateCookie();
+  if (!tokenResult?.ok) {
+    console.error(util.inspect(tokenResult, { depth: Infinity, colors: true }))
+
+    if (tokenResult.body) {
+      console.error(Buffer.from(await tokenResult.arrayBuffer()).toString());
+    }
+
+    return ctx.throw(
+      tokenResult.status,
+      `Knudge response: ${ tokenResult.statusText }`
+    );
+  }
+
   const tokenJSON = await tokenResult.json();
+  const cookie = await generateCookie();
+
+  console.log('--token-result--', { cookie, tokenJSON })
   await keyValueStore.write(STORAGE_KEY, JSON.stringify(tokenJSON));
-  ctx.cookies.set('session', cookie)
   await keyValueStore.write(`session-${ cookie }`, JSON.stringify(tokenJSON));
+  ctx.cookies.set('session', cookie)
   ctx.status = 200;
+  ctx.body = {};
 }
 
 async function handleUnlink(ctx) {

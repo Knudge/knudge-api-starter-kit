@@ -1,38 +1,56 @@
 import Koa from 'koa';
 import https from 'node:https';
 import handleAPIRequest from './handle-api-request.mjs';
-import devCertificateFor from '../dev-certificates-for.mjs';
+import cors from '@koa/cors';
 
-import {
-  CERTIFICATE
-} from '../config.mjs';
+import bodyParser from 'koa-bodyparser';
+
+import { CERTIFICATE, URL_WEB } from '../config.mjs';
 
 const app = new Koa(); 
 
-app.use(async ctx => {
+app.use(cors({ origin: URL_WEB.origin }));
+
+app.use(async (ctx, next) => {
   const sessionCookie = ctx.cookies.get('session');
 
   if (sessionCookie) {
-    const oauth = await kvStore.read(`session-${ sessionCookie }`)
+    let sessionStorageKey = `session-${ sessionCookie }`;
+    let sessionData = await kvStore.read(sessionStorageKey);
 
-    if (oauth) {
-      ctx.state.oauth = oauth;
-    } else {
+    if (sessionData) {
+      try {
+        ctx.state.oauth = await JSON.parse(sessionData);
+      } catch (err) {
+        console.error(err);
+        await kvStore.remove(sessionStorageKey)
+      }
+    }
+
+    if (!ctx.state.oauth) {
       ctx.cookies.set('session', null);
     }
   }
+
+  await next();
 });
 
-app.use(async ctx => {
+app.use(bodyParser());
+
+app.use(async (ctx, next) => {
   if (ctx.request.path.startsWith('/api/')) {
+    ctx.request.jsonBody
     await handleAPIRequest(ctx);
   } else {
     ctx.throw(404, 'Unsupported path');
   }
+
+  await next();
 });
 
 const { key, cert } = CERTIFICATE;
-
 const serverOptions = { cert, key };
 
-https.createServer(serverOptions, app.callback()).listen(10443);
+https.createServer(serverOptions, app.callback())
+  .once('listening', () => console.log('API server listening'))
+  .listen(10443)
