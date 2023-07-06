@@ -59,10 +59,12 @@ export class KnudgeAPIStarterKit extends LitElement {
     }
   `;
 
+  // ACCESSORS /////////////////////////////////////////////////////////////////
+
   get knudgeURL(): string {
     const url = new URL(`${ KNUDGE_ORIGIN }/oauth/authorize`);
 
-    url.searchParams.append('client_id', process.env.OAUTH_CLIENT_ID ?? '');
+    url.searchParams.append('client_id', process.env.KNUDGE_CLIENT_ID ?? '');
     url.searchParams.append('response_type', 'code');
     url.searchParams.append('scope', SCOPES.join('+'));
 
@@ -88,6 +90,12 @@ export class KnudgeAPIStarterKit extends LitElement {
       `top=${ top }`,
       `width=${ width }`
     ].join();
+  }
+
+  // LIFECYCLE /////////////////////////////////////////////////////////////////
+
+  firstUpdated() {
+    oauthMaybe();
   }
 
   // EVENT HANDLERS ////////////////////////////////////////////////////////////
@@ -117,4 +125,25 @@ export class KnudgeAPIStarterKit extends LitElement {
       </p>
     `;
   }
+}
+
+async function oauthMaybe() {
+  if (location.pathname !== '/oauth/knudge') {
+    return;
+  }
+
+  const code = new URLSearchParams(location.search).get('code');
+
+  if (!code) {
+    throw new Error('No code param provided in OAuth path');
+  }
+
+  await fetch(`${ process.env.URL_API }/oauth/knudge`, {
+    headers: [
+      [ 'accept',       'application/json' ],
+      [ 'content-type', 'application/json' ]
+    ],
+    body: JSON.stringify({ code }),
+    method: 'POST'
+  });
 }
