@@ -59,11 +59,11 @@ async function killAppProcess(appProcess) {
 function getReloadAll() {
   let appProcess;
 
-  return debounce(async filepath => {
+  return debounce(async (action, filepath) => {
     if (filepath) {
-      console.log(`Detected change in API server (${ filepath })...`);
+      console.log('API server', action, filepath);
     } else {
-      console.log(`Initializing API server watch`);
+      console.log(`API server watch started`);
     }
 
     await killAppProcess(appProcess);
