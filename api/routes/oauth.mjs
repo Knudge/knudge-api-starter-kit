@@ -69,10 +69,9 @@ async function handleLink(ctx) {
   }
 
   const tokenJSON = await tokenResult.json();
+  console.log('--tokenJSON--', tokenJSON);
   const cookie = await generateCookie();
 
-  console.log('--token-result--', { cookie, tokenJSON })
-  await keyValueStore.write(STORAGE_KEY, JSON.stringify(tokenJSON));
   await keyValueStore.write(`session-${ cookie }`, JSON.stringify(tokenJSON));
   ctx.cookies.set('session', cookie)
   ctx.status = 200;
@@ -80,6 +79,7 @@ async function handleLink(ctx) {
 }
 
 async function handleUnlink(ctx) {
+  let cookie = ctx.cookies.get('session');
   ctx.cookies.set('session', null);
-  await keyValueStore.remove(STORAGE_KEY);
+  await keyValueStore.remove(`session-${ cookie }`);
 }
