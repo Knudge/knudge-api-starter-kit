@@ -16,6 +16,7 @@
     "sourceMap": true,
     "strict": true,
     "target": "es2022",
+    "useDefineForClassFields": false,
   },
   "include": ["**/*.ts", "api/handle-api-request.mjs", "api/index.ts", "api/fs-key-value-store.mjs", "api/routes/routes.mjs", "api/routes/oauth.mjs"]
 }

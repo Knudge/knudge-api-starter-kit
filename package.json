@@ -59,7 +59,19 @@
     "typescript": "^4.5.2"
   },
   "eslintConfig": {
+    "env": {
+      "es6": true,
+      "browser": true
+    },
+    "globals": {
+      "BigInt64Array": true,
+      "BigUint64Array": true
+    },
     "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 2020,
+      "sourceType": "module"
+    },
     "extends": [
       "@open-wc",
       "prettier"
@@ -67,8 +79,13 @@
     "plugins": [
       "@typescript-eslint"
     ],
+    "root": true,
     "rules": {
+      "consistent-return": "warn",
+      "class-methods-use-this": "off",
       "no-unused-vars": "off",
+      "no-use-before-define": "off",
+      "no-console": "off",
       "@typescript-eslint/no-unused-vars": [
         "error"
       ],
