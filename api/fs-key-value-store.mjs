@@ -15,7 +15,11 @@ export async function write(key, data) {
 }
 
 export async function read(key) {
-  return (await fs.readFile(getPath(key))).toString('utf8');
+  try {
+    return (await fs.readFile(getPath(key))).toString('utf8');
+  } catch {
+    return null;
+  }
 }
 
 function getPath(key) {

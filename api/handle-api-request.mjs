@@ -1,8 +1,6 @@
-import routes from './routes/routes.mjs'
 import joi from 'joi';
 
-import * as kvStore from './fs-key-value-store.mjs';
-import { URL_WEB } from '../config.mjs';
+import routes from './routes/routes.mjs'
 
 export default async function handleAPIRequest(ctx) {
   const routeMethods = routes[ctx.request.path];

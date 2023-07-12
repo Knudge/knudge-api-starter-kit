@@ -3,12 +3,12 @@ import util from 'node:util';
 import { customAlphabet } from 'nanoid/async';
 import joi from 'joi';
 
-import * as keyValueStore from '../fs-key-value-store.mjs';
+import * as kvStore from '../fs-key-value-store.mjs';
 import { KNUDGE_CLIENT_ID, KNUDGE_ORIGIN, KNUDGE_SECRET } from '../../config.mjs'
 
 const generateCookie = customAlphabet('23456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 20);
 
-const STORAGE_KEY = 'knudge-oauth-token';
+// ROUTES //////////////////////////////////////////////////////////////////////
 
 export default {
   '/api/oauth/knudge': {
@@ -69,10 +69,9 @@ async function handleLink(ctx) {
   }
 
   const tokenJSON = await tokenResult.json();
-  console.log('--tokenJSON--', tokenJSON);
   const cookie = await generateCookie();
 
-  await keyValueStore.write(`session-${ cookie }`, JSON.stringify(tokenJSON));
+  await kvStore.write(`session-${ cookie }`, JSON.stringify(tokenJSON));
   ctx.cookies.set('session', cookie)
   ctx.status = 200;
   ctx.body = {};
@@ -81,5 +80,5 @@ async function handleLink(ctx) {
 async function handleUnlink(ctx) {
   let cookie = ctx.cookies.get('session');
   ctx.cookies.set('session', null);
-  await keyValueStore.remove(`session-${ cookie }`);
+  await kvStore.remove(`session-${ cookie }`);
 }
