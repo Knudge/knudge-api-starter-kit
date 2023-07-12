@@ -1,5 +1,9 @@
+/// <reference lib="dom" />
+
 import { LitElement, html, css } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
+
+import { JSONRequestInit } from './ka-starter-kit.types';
 
 import openWindow from '../util/open-window';
 
@@ -59,6 +63,12 @@ export class KnudgeAPIStarterKit extends LitElement {
     }
   `;
 
+  // PROPERTIES ////////////////////////////////////////////////////////////////
+
+  @state() sessionPromise?: Promise<Object>;
+
+  @state() session?: Object;
+
   // ACCESSORS /////////////////////////////////////////////////////////////////
 
   get knudgeURL(): string {
@@ -94,8 +104,15 @@ export class KnudgeAPIStarterKit extends LitElement {
 
   // LIFECYCLE /////////////////////////////////////////////////////////////////
 
-  firstUpdated() {
-    oauthMaybe();
+  constructor() {
+    super();
+
+    this.sessionPromise = fetchAPI(`/session`)
+    this.sessionPromise.then(session => {
+      this.session = session
+    });
+
+    handleRoute();
   }
 
   // EVENT HANDLERS ////////////////////////////////////////////////////////////
@@ -127,23 +144,43 @@ export class KnudgeAPIStarterKit extends LitElement {
   }
 }
 
-async function oauthMaybe() {
-  if (location.pathname !== '/oauth/knudge') {
-    return;
+async function handleRoute() {
+  switch (location.pathname) {
+    case '/oauth/knudge':
+      await oauthInit();
+      break;
+    default:
+      return;
   }
+}
 
+async function oauthInit() {
   const code = new URLSearchParams(location.search).get('code');
 
   if (!code) {
     throw new Error('No code param provided in OAuth path');
   }
 
-  await fetch(`${ process.env.URL_API }/oauth/knudge`, {
+  await fetchAPI('/oauth/knudge', {
+    body: { code },
+    method: 'POST'
+  });
+}
+
+async function fetchAPI(path: string, {
+  body,
+  method='GET',
+  headers,
+  ...init
+}: JSONRequestInit={}) {
+  return fetch(`${ process.env.URL_API }${ path }`, {
     headers: [
       [ 'accept',       'application/json' ],
-      [ 'content-type', 'application/json' ]
+      [ 'content-type', 'application/json' ],
+      ...headers as [] ?? []
     ],
-    body: JSON.stringify({ code }),
-    method: 'POST'
+    body: body && JSON.stringify(body),
+    method,
+    ...init
   });
 }
