@@ -13,10 +13,17 @@ export const KNUDGE_ORIGIN = getKnudgeOrigin();
 
 export const KNUDGE_SECRET = getKnudgeSecret();
 
+export const ORIGIN_API = getOriginAPI();
+
+export const ORIGIN_WEB = getOriginWeb();
+
+export const PORT_API = getPortAPI();
+
+export const PORT_WEB = getPortWeb();
+
 export const URL_API = getURLAPI();
 
 export const URL_WEB = getURLWeb();
-
 
 // GETTERS /////////////////////////////////////////////////////////////////////
 
@@ -42,10 +49,26 @@ function getKnudgeSecret() {
   return process.env.KNUDGE_SECRET;
 }
 
+function getOriginAPI() {
+  return `https://${ getHostname() }:${ getPortAPI() }`;
+}
+
+function getOriginWeb() {
+  return `https://${ getHostname() }:${ getPortWeb() }`;
+}
+
+function getPortAPI() {
+  return process.env.PORT_API;
+}
+
+function getPortWeb() {
+  return process.env.PORT_WEB;
+}
+
 function getURLAPI() {
-  return new URL(`https://${ getHostname() }:10443/api`)
+  return new URL(`${ getOriginAPI() }/api`)
 }
 
 function getURLWeb() {
-  return new URL(`https://${ getHostname() }:9443`);
+  return new URL(`${ getOriginWeb() }`);
 }
