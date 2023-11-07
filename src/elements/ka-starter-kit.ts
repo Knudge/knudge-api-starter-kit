@@ -177,6 +177,8 @@ async function oauthInit() {
     body: { code },
     method: 'POST',
   });
+
+  window.close();
 }
 
 async function fetchAPI(

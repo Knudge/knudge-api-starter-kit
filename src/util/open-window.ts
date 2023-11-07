@@ -7,8 +7,8 @@ export default function openWindow(
     return null;
   }
 
-  let close = otherWindow.close;
-  let closePromise = new Promise(resolve => {
+  const { close } = otherWindow;
+  const closePromise = new Promise(resolve => {
     otherWindow!.window.close = () => { resolve(undefined); };
   });
 
