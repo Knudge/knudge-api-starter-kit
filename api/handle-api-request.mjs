@@ -23,6 +23,10 @@ export default async function handleAPIRequest(ctx) {
     joi.attempt(ctx.body, route.bodySchema, { stripUnknown: true });
   }
 
+  if (route.searchParamSchema) {
+    joi.attempt(ctx.search, route.searchParamSchema, { stripUnknown: true });
+  }
+
   ctx.set('content-type', 'application/json');
 
   await route.handle(ctx);

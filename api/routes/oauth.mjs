@@ -20,7 +20,10 @@ export default {
       bodySchema: joi.object({
         code: joi.string().required()
       }),
-      public: true
+      public: true,
+      searchParamsSchema: joi.object({
+        client_id: joi.string()
+      }),
     }
   }
 };
@@ -36,8 +39,25 @@ async function handleLink(ctx) {
   let tokenResult;
 
   try {
+    let { client_id: clientID } = ctx.request.search;
+    let clientSecret;
+
+    if (clientID) {
+      try {
+        ({ clientID, clientSecret } = JSON.parse(
+          await kvStore.read(`client-${ clientID }`)
+        ))
+      } catch (err) {
+        console.error(`No secret stored for client ID "${ clientID }"`, err);
+        clientID = null;
+      }
+    }
+
+    clientID ??= KNUDGE_CLIENT_ID;
+    clientSecret ??= KNUDGE_SECRET;
+
     let authorizationBase64 = Buffer
-      .from(`${ KNUDGE_CLIENT_ID }:${ KNUDGE_SECRET }`)
+      .from(`${ ctx.request.search.client_id ?? KNUDGE_CLIENT_ID }:${ KNUDGE_SECRET }`)
       .toString('base64');
     tokenResult = await fetch(`${ KNUDGE_ORIGIN }/api/xn--0ci/oauth/token`, {
       headers: {

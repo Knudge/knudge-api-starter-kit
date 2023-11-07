@@ -5,20 +5,18 @@ import { customElement, state } from 'lit/decorators.js';
 
 import { JSONRequestInit } from './ka-starter-kit.types';
 
-import openWindow from '../util/open-window';
+import openWindow from '../util/open-window.js';
 
 declare global {
   interface Screen {
-    availLeft: number | undefined,
-    availTop: number | undefined
+    availLeft: number | undefined;
+    availTop: number | undefined;
   }
 }
 
-const SCOPES: string[] = [
-  'nudges:read'
-];
+const SCOPES: string[] = ['nudges:read'];
 
-const KNUDGE_ORIGIN = process.env.KNUDGE_ORIGIN;
+const { KNUDGE_ORIGIN } = process.env;
 
 @customElement('ka-starter-kit')
 export class KnudgeAPIStarterKit extends LitElement {
@@ -72,22 +70,30 @@ export class KnudgeAPIStarterKit extends LitElement {
   // ACCESSORS /////////////////////////////////////////////////////////////////
 
   get knudgeURL(): string {
-    const url = new URL(`${ KNUDGE_ORIGIN }/oauth/authorize`);
+    const url = new URL(`${KNUDGE_ORIGIN}/oauth/authorize`);
+    const usp = new URLSearchParams(window.location.search);
 
-    url.searchParams.append('client_id', process.env.KNUDGE_CLIENT_ID ?? '');
+    url.searchParams.append(
+      'client_id',
+      usp.get('client_id') ?? process.env.KNUDGE_CLIENT_ID ?? ''
+    );
     url.searchParams.append('response_type', 'code');
     url.searchParams.append('scope', SCOPES.join('+'));
 
     return url.toString();
   }
 
-
   get windowFeatures() {
-    const { availHeight, availLeft=0, availTop=0, availWidth } = screen;
+    const {
+      availHeight,
+      availLeft = 0,
+      availTop = 0,
+      availWidth,
+    } = window.screen;
     const height = Math.min(availHeight - 60, 600);
-    const width  = Math.min(availWidth - 60, 425);
-    const top    = Math.floor(availTop + (availHeight - height) / 4);
-    const left   = Math.floor(availLeft + (availWidth - width) / 2);
+    const width = Math.min(availWidth - 60, 425);
+    const top = Math.floor(availTop + (availHeight - height) / 4);
+    const left = Math.floor(availLeft + (availWidth - width) / 2);
 
     // Note that we do not need to specify noopener here; other constraints will
     // prevent exposure of opener. This is important because in the context of
@@ -95,10 +101,10 @@ export class KnudgeAPIStarterKit extends LitElement {
     // ignored.
 
     return [
-      `height=${ height }`,
-      `left=${ left }`,
-      `top=${ top }`,
-      `width=${ width }`
+      `height=${height}`,
+      `left=${left}`,
+      `top=${top}`,
+      `width=${width}`,
     ].join();
   }
 
@@ -107,9 +113,9 @@ export class KnudgeAPIStarterKit extends LitElement {
   constructor() {
     super();
 
-    this.sessionPromise = fetchAPI(`/session`)
+    this.sessionPromise = fetchAPI(`/session`);
     this.sessionPromise.then(session => {
-      this.session = session
+      this.session = session;
     });
 
     handleRoute();
@@ -119,7 +125,7 @@ export class KnudgeAPIStarterKit extends LitElement {
 
   handleClickConnectKnudgeAccount(event: MouseEvent) {
     event.preventDefault();
-    openWindow(this.knudgeURL, 'knudge', this.windowFeatures)
+    openWindow(this.knudgeURL, 'knudge', this.windowFeatures);
   }
 
   // RENDER ////////////////////////////////////////////////////////////////////
@@ -131,56 +137,60 @@ export class KnudgeAPIStarterKit extends LitElement {
 
         <a
           class="button"
-          @click="${ this.handleClickConnectKnudgeAccount }"
-          href="${ this.knudgeURL }">
+          @click="${this.handleClickConnectKnudgeAccount}"
+          href="${this.knudgeURL}"
+        >
           Connect Knudge account
         </a>
       </main>
 
       <p class="app-footer">
-        <a href="${ KNUDGE_ORIGIN }/api-docs">Knudge API docs</a>
+        <a href="${KNUDGE_ORIGIN}/api-docs">Knudge API docs</a>
       </p>
     `;
   }
 }
 
 async function handleRoute() {
-  switch (location.pathname) {
+  switch (window.location.pathname) {
     case '/oauth/knudge':
       await oauthInit();
       break;
     default:
-      return;
   }
 }
 
 async function oauthInit() {
-  const code = new URLSearchParams(location.search).get('code');
+  const usp = new URLSearchParams(window.location.search);
+  const clientID = usp.get('client_id');
+  const code = usp.get('code');
 
   if (!code) {
     throw new Error('No code param provided in OAuth path');
   }
 
-  await fetchAPI('/oauth/knudge', {
+  const uspClient = new URLSearchParams([
+    ...(clientID ? [['client_id', clientID]] : []),
+  ]);
+
+  await fetchAPI(`/oauth/knudge${uspClient}`, {
     body: { code },
-    method: 'POST'
+    method: 'POST',
   });
 }
 
-async function fetchAPI(path: string, {
-  body,
-  method='GET',
-  headers,
-  ...init
-}: JSONRequestInit={}) {
-  return fetch(`${ process.env.URL_API }${ path }`, {
+async function fetchAPI(
+  path: string,
+  { body, method = 'GET', headers, ...init }: JSONRequestInit = {}
+) {
+  return fetch(`${process.env.URL_API}${path}`, {
     headers: [
-      [ 'accept',       'application/json' ],
-      [ 'content-type', 'application/json' ],
-      ...headers as [] ?? []
+      ['accept', 'application/json'],
+      ['content-type', 'application/json'],
+      ...((headers as []) ?? []),
     ],
     body: body && JSON.stringify(body),
     method,
-    ...init
+    ...init,
   });
 }
