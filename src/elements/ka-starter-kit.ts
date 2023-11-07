@@ -16,7 +16,7 @@ declare global {
 
 const SCOPES: string[] = ['nudges:read'];
 
-const { KNUDGE_ORIGIN } = process.env;
+const KNUDGE_ORIGIN = process.env.KNUDGE_ORIGIN;
 
 @customElement('ka-starter-kit')
 export class KnudgeAPIStarterKit extends LitElement {
