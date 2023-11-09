@@ -8,16 +8,18 @@ import * as kvStore from '../fs-key-value-store.mjs';
 // ROUTES //////////////////////////////////////////////////////////////////////
 
 export default {
-  '/api/client': {
-    'PUT': {
-      handle: handleClientSet,
-      bodySchema: joi.object({
-        clientID: joi.string().required(),
-        clientSecret: joi.string().required()
-      }),
-      public: true
+  ...process.env.IS_TEST ? {
+    '/api/client': {
+      'PUT': {
+        handle: handleClientSet,
+        bodySchema: joi.object({
+          clientID: joi.string().required(),
+          clientSecret: joi.string().required()
+        }),
+        public: true
+      }
     }
-  }
+  } : {}
 };
 
 // HANDLERS ////////////////////////////////////////////////////////////////////
