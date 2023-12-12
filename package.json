@@ -5,6 +5,10 @@
   "author": "ka-starter-kit",
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": "^21.4.0",
+    "npm": "^10.2.5"
+  },
   "scripts": {
     "lint": "eslint --ext .ts,.html . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
     "format": "eslint --ext .ts,.html . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
@@ -16,7 +20,7 @@
     "start": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\" \"node api/watch.mjs\""
   },
   "dependencies": {
-    "@koa/cors": "^4.0.0",
+    "@koa/cors": "^5.0.0",
     "@rollup/plugin-replace": "^5.0.2",
     "@types/koa": "^2.13.6",
     "dotenv": "^16.3.1",
