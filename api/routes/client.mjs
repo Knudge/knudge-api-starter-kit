@@ -1,6 +1,3 @@
-import util from 'node:util';
-
-import { customAlphabet } from 'nanoid/async';
 import joi from 'joi';
 
 import * as kvStore from '../fs-key-value-store.mjs';
@@ -36,7 +33,6 @@ async function handleClientSet(ctx) {
     clientID,
     clientSecret
   }));
-  ctx.cookies.set('session', cookie)
   ctx.status = 200;
   ctx.body = {
     clientID,

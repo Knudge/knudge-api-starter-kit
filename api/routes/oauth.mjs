@@ -4,7 +4,8 @@ import { customAlphabet } from 'nanoid/async';
 import joi from 'joi';
 
 import * as kvStore from '../fs-key-value-store.mjs';
-import { KNUDGE_CLIENT_ID, KNUDGE_ORIGIN, KNUDGE_SECRET } from '../../config.mjs'
+import { KNUDGE_ORIGIN_API } from '../../config.mjs'
+import getClient from '../get-client.mjs';
 
 const generateCookie = customAlphabet('23456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 20);
 
@@ -39,27 +40,9 @@ async function handleLink(ctx) {
   let tokenResult;
 
   try {
-    let { client_id: clientID } = ctx.request.search;
-    let clientSecret;
+    let { authorizationBase64 } = await getClient(ctx);
 
-    if (clientID) {
-      try {
-        ({ clientID, clientSecret } = JSON.parse(
-          await kvStore.read(`client-${ clientID }`)
-        ))
-      } catch (err) {
-        console.error(`No secret stored for client ID "${ clientID }"`, err);
-        clientID = null;
-      }
-    }
-
-    clientID ??= KNUDGE_CLIENT_ID;
-    clientSecret ??= KNUDGE_SECRET;
-
-    let authorizationBase64 = Buffer
-      .from(`${ ctx.request.search.client_id ?? KNUDGE_CLIENT_ID }:${ KNUDGE_SECRET }`)
-      .toString('base64');
-    tokenResult = await fetch(`${ KNUDGE_ORIGIN }/api/xn--0ci/oauth/token`, {
+    tokenResult = await fetch(`${ KNUDGE_ORIGIN_API }/v1/oauth/token`, {
       headers: {
         'authorization': `basic ${ authorizationBase64 }`,
         'accept': 'application/json',
@@ -78,7 +61,7 @@ async function handleLink(ctx) {
   if (!tokenResult?.ok) {
     console.error(util.inspect(tokenResult, { depth: Infinity, colors: true }))
 
-    if (tokenResult.body) {
+    if (tokenResult?.body) {
       console.error(Buffer.from(await tokenResult.arrayBuffer()).toString());
     }
 
@@ -91,14 +74,20 @@ async function handleLink(ctx) {
   const tokenJSON = await tokenResult.json();
   const cookie = await generateCookie();
 
-  await kvStore.write(`session-${ cookie }`, JSON.stringify(tokenJSON));
-  ctx.cookies.set('session', cookie)
+  console.log('--cookie--', cookie, tokenJSON);
+  await kvStore.write(`sesh-${ cookie }`, JSON.stringify(tokenJSON));
+  ctx.cookies.set('sesh', cookie, {
+    // domain: HOSTNAME,
+    maxAge: 1000 * 60 * 60 * 24 * 14,
+    // overwrite: true,
+    // secure: true
+  })
   ctx.status = 200;
   ctx.body = {};
 }
 
 async function handleUnlink(ctx) {
-  let cookie = ctx.cookies.get('session');
-  ctx.cookies.set('session', null);
+  let cookie = ctx.cookies.get('sesh');
+  ctx.cookies.set('sesh', null);
   await kvStore.remove(`session-${ cookie }`);
 }

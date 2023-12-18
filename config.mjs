@@ -11,6 +11,8 @@ export const KNUDGE_CLIENT_ID = getKnudgeClientID();
 
 export const KNUDGE_ORIGIN = getKnudgeOrigin();
 
+export const KNUDGE_ORIGIN_API = getKnudgeOriginAPI();
+
 export const KNUDGE_SECRET = getKnudgeSecret();
 
 export const ORIGIN_API = getOriginAPI();
@@ -43,6 +45,10 @@ function getKnudgeClientID() {
 
 function getKnudgeOrigin() {
   return process.env.KNUDGE_ORIGIN;
+}
+
+function getKnudgeOriginAPI() {
+  return process.env.KNUDGE_ORIGIN_API;
 }
 
 function getKnudgeSecret() {

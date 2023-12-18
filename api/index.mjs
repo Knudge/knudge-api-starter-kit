@@ -12,10 +12,10 @@ const app = new Koa();
 app.use(cors({ origin: URL_WEB.origin }));
 
 app.use(async (ctx, next) => {
-  const sessionCookie = ctx.cookies.get('session');
+  const sessionCookie = ctx.cookies.get('sesh');
 
   if (sessionCookie) {
-    let sessionStorageKey = `session-${ sessionCookie }`;
+    let sessionStorageKey = `sesh-${ sessionCookie }`;
     let sessionData = await kvStore.read(sessionStorageKey);
 
     if (sessionData) {
@@ -28,7 +28,7 @@ app.use(async (ctx, next) => {
     }
 
     if (!ctx.state.oauth) {
-      ctx.cookies.set('session', null);
+      ctx.cookies.set('sesh', null);
     }
   }
 
@@ -38,8 +38,9 @@ app.use(async (ctx, next) => {
 app.use(bodyParser());
 
 app.use(async (ctx, next) => {
+  console.log(`${ new Date().toLocaleTimeString() } ${ ctx.request.method } ${ ctx.request.path }`);
+
   if (ctx.request.path.startsWith('/api/')) {
-    ctx.request.jsonBody
     await handleAPIRequest(ctx);
   } else {
     ctx.throw(404, 'Unsupported path');

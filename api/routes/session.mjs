@@ -14,30 +14,24 @@ export default {
 // HANDLERS ////////////////////////////////////////////////////////////////////
 
 async function getSession(ctx) {
-  const cookie = ctx.cookies.get('session');
+  const cookie = ctx.cookies.get('sesh');
 
   if (!cookie) {
-    ctx.body = null;
+    ctx.status = 404;
+    ctx.body = {};
     return;
   }
 
-  const STORAGE_KEY = `session-${ cookie }`;
+  let { oauth } = ctx.state;
 
-  let oauth = await kvStore.read(STORAGE_KEY);
+  console.log('--oauth--', oauth);
 
   if (!oauth) {
     ctx.body = null;
     return;
   }
 
-  try {
-    oauth = JSON.parse(oauth)
-  } catch (err) {
-    console.error(err);
-    await kvStore.remove(STORAGE_KEY)
-    ctx.body = null;
-    return;
-  }
+  ctx.status = 418;
 
   // TODO fetch user info from Knudge
   ctx.body = {};

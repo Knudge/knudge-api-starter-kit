@@ -63,9 +63,11 @@ export class KnudgeAPIStarterKit extends LitElement {
 
   // PROPERTIES ////////////////////////////////////////////////////////////////
 
-  @state() sessionPromise?: Promise<Object>;
+  @state()
+  sessionPromise?: Promise<Response>;
 
-  @state() session?: Object;
+  @state()
+  session?: Response;
 
   // ACCESSORS /////////////////////////////////////////////////////////////////
 
@@ -135,18 +137,32 @@ export class KnudgeAPIStarterKit extends LitElement {
       <main>
         <h1>Knudge API starter app</h1>
 
-        <a
-          class="button"
-          @click="${this.handleClickConnectKnudgeAccount}"
-          href="${this.knudgeURL}"
-        >
-          Connect Knudge account
-        </a>
+        ${this.renderAction()}
       </main>
 
       <p class="app-footer">
         <a href="${KNUDGE_ORIGIN}/api-docs">Knudge API docs</a>
       </p>
+    `;
+  }
+
+  renderAction() {
+    if (this.sessionPromise && !this.session) {
+      return 'Loading...';
+    }
+
+    if (this.session?.status === 200) {
+      return html` Connected `;
+    }
+
+    return html`
+      <a
+        class="button"
+        @click="${this.handleClickConnectKnudgeAccount}"
+        href="${this.knudgeURL}"
+      >
+        Connect Knudge account
+      </a>
     `;
   }
 }
@@ -184,7 +200,7 @@ async function oauthInit() {
 async function fetchAPI(
   path: string,
   { body, method = 'GET', headers, ...init }: JSONRequestInit = {}
-) {
+): Promise<Response> {
   return fetch(`${process.env.URL_API}${path}`, {
     headers: [
       ['accept', 'application/json'],
