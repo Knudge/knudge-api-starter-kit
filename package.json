@@ -26,7 +26,7 @@
     "dotenv": "^16.3.1",
     "joi": "^17.9.2",
     "koa-bodyparser": "^4.4.1",
-    "lit": "^2.0.2",
+    "lit": "^3.1.0",
     "lodash.debounce": "^4.0.8",
     "nanoid": "^4.0.2"
   },
@@ -68,7 +68,7 @@
     "rollup-plugin-esbuild": "^5.0.0",
     "rollup-plugin-workbox": "^6.2.0",
     "tslib": "^2.3.1",
-    "typescript": "^4.5.2"
+    "typescript": "^5.3.3"
   },
   "eslintConfig": {
     "env": {
@@ -81,7 +81,7 @@
     },
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
-      "ecmaVersion": 2020,
+      "ecmaVersion": 2022,
       "sourceType": "module"
     },
     "extends": [
