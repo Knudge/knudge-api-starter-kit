@@ -67,7 +67,7 @@ export class KnudgeAPIStarterKit extends LitElement {
   sessionPromise?: Promise<Response>;
 
   @state()
-  session?: Response;
+  session?: any;
 
   // ACCESSORS /////////////////////////////////////////////////////////////////
 
@@ -115,12 +115,8 @@ export class KnudgeAPIStarterKit extends LitElement {
   constructor() {
     super();
 
-    this.sessionPromise = fetchAPI(`/session`);
-    this.sessionPromise.then(session => {
-      this.session = session;
-    });
-
-    handleRoute();
+    this.fetchSession();
+    this.handleRoute();
   }
 
   // EVENT HANDLERS ////////////////////////////////////////////////////////////
@@ -128,6 +124,50 @@ export class KnudgeAPIStarterKit extends LitElement {
   handleClickConnectKnudgeAccount(event: MouseEvent) {
     event.preventDefault();
     openWindow(this.knudgeURL, 'knudge', this.windowFeatures);
+  }
+
+  async handleRoute() {
+    switch (window.location.pathname) {
+      case '/oauth/knudge':
+        await this.oauthInit();
+        break;
+      default:
+    }
+  }
+
+  // API ///////////////////////////////////////////////////////////////////////
+
+  async fetchSession() {
+    this.sessionPromise = fetchAPI(`/session`);
+    this.session = await this.sessionPromise.then(response =>
+      response.json().catch(err => {
+        console.error(err);
+        return null;
+      })
+    );
+  }
+
+  async oauthInit() {
+    const usp = new URLSearchParams(window.location.search);
+    const clientID = usp.get('client_id');
+    const code = usp.get('code');
+
+    if (!code) {
+      throw new Error('No code param provided in OAuth path');
+    }
+
+    const uspClient = new URLSearchParams([
+      ...(clientID ? [['client_id', clientID]] : []),
+    ]);
+
+    const result = await fetchAPI(`/oauth/knudge${uspClient}`, {
+      body: { code },
+      method: 'POST',
+    });
+
+    if (result.ok) {
+      this.fetchSession();
+    }
   }
 
   // RENDER ////////////////////////////////////////////////////////////////////
@@ -151,8 +191,9 @@ export class KnudgeAPIStarterKit extends LitElement {
       return 'Loading...';
     }
 
-    if (this.session?.status === 200) {
-      return html` Connected `;
+    if (this.session) {
+      const { firstName, lastName } = this.session;
+      return html` Connected as ${firstName} ${lastName}. `;
     }
 
     return html`
@@ -167,41 +208,12 @@ export class KnudgeAPIStarterKit extends LitElement {
   }
 }
 
-async function handleRoute() {
-  switch (window.location.pathname) {
-    case '/oauth/knudge':
-      await oauthInit();
-      break;
-    default:
-  }
-}
-
-async function oauthInit() {
-  const usp = new URLSearchParams(window.location.search);
-  const clientID = usp.get('client_id');
-  const code = usp.get('code');
-
-  if (!code) {
-    throw new Error('No code param provided in OAuth path');
-  }
-
-  const uspClient = new URLSearchParams([
-    ...(clientID ? [['client_id', clientID]] : []),
-  ]);
-
-  await fetchAPI(`/oauth/knudge${uspClient}`, {
-    body: { code },
-    method: 'POST',
-  });
-
-  window.close();
-}
-
 async function fetchAPI(
   path: string,
   { body, method = 'GET', headers, ...init }: JSONRequestInit = {}
 ): Promise<Response> {
   return fetch(`${process.env.URL_API}${path}`, {
+    credentials: 'include',
     headers: [
       ['accept', 'application/json'],
       ['content-type', 'application/json'],

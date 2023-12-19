@@ -4,7 +4,7 @@ import { customAlphabet } from 'nanoid/async';
 import joi from 'joi';
 
 import * as kvStore from '../fs-key-value-store.mjs';
-import { KNUDGE_ORIGIN_API } from '../../config.mjs'
+import { HOSTNAME, KNUDGE_ORIGIN_API } from '../../config.mjs'
 import getClient from '../get-client.mjs';
 
 const generateCookie = customAlphabet('23456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 20);
@@ -74,13 +74,14 @@ async function handleLink(ctx) {
   const tokenJSON = await tokenResult.json();
   const cookie = await generateCookie();
 
-  console.log('--cookie--', cookie, tokenJSON);
   await kvStore.write(`sesh-${ cookie }`, JSON.stringify(tokenJSON));
   ctx.cookies.set('sesh', cookie, {
-    // domain: HOSTNAME,
+    domain: HOSTNAME,
+    httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24 * 14,
-    // overwrite: true,
-    // secure: true
+    overwrite: true,
+    sameSite: 'lax',
+    secure: true
   })
   ctx.status = 200;
   ctx.body = {};

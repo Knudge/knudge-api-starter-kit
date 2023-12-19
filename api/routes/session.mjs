@@ -1,4 +1,4 @@
-import * as kvStore from '../fs-key-value-store.mjs';
+import { KNUDGE_ORIGIN_API } from '../../config.mjs'
 
 // ROUTES //////////////////////////////////////////////////////////////////////
 
@@ -18,21 +18,24 @@ async function getSession(ctx) {
 
   if (!cookie) {
     ctx.status = 404;
-    ctx.body = {};
     return;
   }
 
   let { oauth } = ctx.state;
 
-  console.log('--oauth--', oauth);
-
   if (!oauth) {
+    ctx.status = 404;
     ctx.body = null;
     return;
   }
 
-  ctx.status = 418;
+  let selfResult = await fetch(`${ KNUDGE_ORIGIN_API }/v1/self`, {
+      headers: {
+        'authorization': `bearer ${ oauth.access_token }`,
+        'accept': 'application/json'
+      },
+      method: 'GET'
+  });
 
-  // TODO fetch user info from Knudge
-  ctx.body = {};
+  ctx.body = await selfResult.json();
 }

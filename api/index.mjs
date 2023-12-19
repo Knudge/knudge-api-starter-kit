@@ -1,15 +1,16 @@
 import Koa from 'koa';
-import https from 'node:https';
-import handleAPIRequest from './handle-api-request.mjs';
-import cors from '@koa/cors';
-
 import bodyParser from 'koa-bodyparser';
+import https from 'node:https';
+import cors from '@koa/cors';
 
 import { CERTIFICATE, URL_WEB } from '../config.mjs';
 
+import * as kvStore from './fs-key-value-store.mjs';
+import handleAPIRequest from './handle-api-request.mjs';
+
 const app = new Koa(); 
 
-app.use(cors({ origin: URL_WEB.origin }));
+app.use(cors({ credentials: true, origin: URL_WEB.origin }));
 
 app.use(async (ctx, next) => {
   const sessionCookie = ctx.cookies.get('sesh');
