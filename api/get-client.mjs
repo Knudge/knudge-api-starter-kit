@@ -11,7 +11,6 @@ export default async function getClient(ctx) {
 
   if (clientID) {
     try {
-      console.log('--client-fetch--', `client-${ clientID }`);
       ({ clientID, clientSecret } = JSON.parse(
         await kvStore.read(`client-${ clientID }`)
       ))

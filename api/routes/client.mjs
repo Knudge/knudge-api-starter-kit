@@ -36,7 +36,6 @@ async function handleClientSet(ctx) {
     ctx.message = 'Missing clientID or clientSecret';
     return;
   }
-  console.log('--client-store--', `client-${ clientID }-${ clientSecret }`, ctx.request.body);
   await kvStore.write(`client-${ clientID }`, JSON.stringify({
     clientID,
     clientSecret

@@ -4,7 +4,6 @@ import routes from './routes/routes.mjs'
 import passthrough from './routes/passthrough.mjs'
 
 export default async function handleAPIRequest(ctx) {
-  console.log('--api-request--', ctx.request.path, routes);
   const routeMethods = routes[ctx.request.path];
 
   if (!routeMethods) {
