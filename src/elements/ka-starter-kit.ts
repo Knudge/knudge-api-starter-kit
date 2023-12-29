@@ -71,14 +71,19 @@ export class KnudgeAPIStarterKit extends LitElement {
 
   // ACCESSORS /////////////////////////////////////////////////////////////////
 
+  get clientID() {
+    const usp = new URLSearchParams(window.location.search);
+    return usp.get('client_id') || process.env.KNUDGE_CLIENT_ID || '';
+  }
+
   get knudgeURL(): string {
     const url = new URL(`${KNUDGE_ORIGIN}/oauth/authorize`);
-    const usp = new URLSearchParams(window.location.search);
+    const { clientID } = this;
 
-    url.searchParams.append(
-      'client_id',
-      usp.get('client_id') ?? process.env.KNUDGE_CLIENT_ID ?? ''
-    );
+    if (clientID) {
+      url.searchParams.append('client_id', clientID);
+    }
+
     url.searchParams.append('response_type', 'code');
     url.searchParams.append('scope', SCOPES.join('+'));
 
@@ -132,9 +137,9 @@ export class KnudgeAPIStarterKit extends LitElement {
 
   // EVENT HANDLERS ////////////////////////////////////////////////////////////
 
-  handleClickConnectKnudgeAccount(event: MouseEvent) {
+  async handleClickConnectKnudgeAccount(event: MouseEvent) {
     event.preventDefault();
-    openWindow(this.knudgeURL, 'knudge', this.windowFeatures);
+    await openWindow(this.knudgeURL, 'knudge', this.windowFeatures);
   }
 
   handleFocus = async () => {
@@ -155,7 +160,12 @@ export class KnudgeAPIStarterKit extends LitElement {
   // API ///////////////////////////////////////////////////////////////////////
 
   async fetchSession() {
-    this.sessionPromise = fetchAPI(`/session`);
+    const { clientID } = this;
+    const uspClient = new URLSearchParams([
+      ...(clientID ? [['client_id', clientID]] : []),
+    ]);
+
+    this.sessionPromise = fetchAPI(`/session?${uspClient}`);
     this.session = await this.sessionPromise.then(async response => {
       if (!response.ok) {
         this.sessionPromise = undefined;
@@ -174,13 +184,13 @@ export class KnudgeAPIStarterKit extends LitElement {
 
   async oauthInit() {
     const usp = new URLSearchParams(window.location.search);
-    const clientID = usp.get('client_id');
     const code = usp.get('code');
 
     if (!code) {
       throw new Error('No code param provided in OAuth path');
     }
 
+    const { clientID } = this;
     const uspClient = new URLSearchParams([
       ...(clientID ? [['client_id', clientID]] : []),
     ]);
