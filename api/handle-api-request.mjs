@@ -16,7 +16,7 @@ export default async function handleAPIRequest(ctx) {
     return ctx.throw(405);
   }
 
-  if (!route.public && !ctx.state.oauth) {
+  if (!route.public && !ctx.state.oauthSession) {
     return ctx.throw(401, 'Login required');
   }
 

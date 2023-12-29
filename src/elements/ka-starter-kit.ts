@@ -92,6 +92,7 @@ export class KnudgeAPIStarterKit extends LitElement {
       availTop = 0,
       availWidth,
     } = window.screen;
+
     const height = Math.min(availHeight - 60, 600);
     const width = Math.min(availWidth - 60, 425);
     const top = Math.floor(availTop + (availHeight - height) / 4);
@@ -119,12 +120,28 @@ export class KnudgeAPIStarterKit extends LitElement {
     this.handleRoute();
   }
 
+  connectedCallback(): void {
+    super.connectedCallback?.();
+    window.addEventListener('focus', this.handleFocus);
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback?.();
+    window.removeEventListener('focus', this.handleFocus);
+  }
+
   // EVENT HANDLERS ////////////////////////////////////////////////////////////
 
   handleClickConnectKnudgeAccount(event: MouseEvent) {
     event.preventDefault();
     openWindow(this.knudgeURL, 'knudge', this.windowFeatures);
   }
+
+  handleFocus = async () => {
+    if (!this.session) {
+      await this.fetchSession();
+    }
+  };
 
   async handleRoute() {
     switch (window.location.pathname) {
@@ -139,12 +156,20 @@ export class KnudgeAPIStarterKit extends LitElement {
 
   async fetchSession() {
     this.sessionPromise = fetchAPI(`/session`);
-    this.session = await this.sessionPromise.then(response =>
-      response.json().catch(err => {
-        console.error(err);
+    this.session = await this.sessionPromise.then(async response => {
+      if (!response.ok) {
+        this.sessionPromise = undefined;
         return null;
-      })
-    );
+      }
+
+      try {
+        return await response.json();
+      } catch (err) {
+        console.error(err);
+        this.sessionPromise = undefined;
+        return null;
+      }
+    });
   }
 
   async oauthInit() {
@@ -160,13 +185,13 @@ export class KnudgeAPIStarterKit extends LitElement {
       ...(clientID ? [['client_id', clientID]] : []),
     ]);
 
-    const result = await fetchAPI(`/oauth/knudge${uspClient}`, {
+    const result = await fetchAPI(`/oauth/knudge?${uspClient}`, {
       body: { code },
       method: 'POST',
     });
 
     if (result.ok) {
-      this.fetchSession();
+      window.close();
     }
   }
 
@@ -189,6 +214,10 @@ export class KnudgeAPIStarterKit extends LitElement {
   renderAction() {
     if (this.sessionPromise && !this.session) {
       return 'Loading...';
+    }
+
+    if (this.session?.error) {
+      return html`<pre>Error: ${this.session.error}</pre>`;
     }
 
     if (this.session) {

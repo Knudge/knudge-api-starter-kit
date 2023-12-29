@@ -1,6 +1,6 @@
 export default function openWindow(
   ...args: [url?: string | URL, target?: string, features?: string]
-): WindowProxy | null {
+): Promise<any> | null {
   const otherWindow = window.open(...args);
 
   if (!otherWindow) {
@@ -9,7 +9,9 @@ export default function openWindow(
 
   const { close } = otherWindow;
   const closePromise = new Promise(resolve => {
-    otherWindow!.window.close = () => { resolve(undefined); };
+    otherWindow!.window.close = () => {
+      resolve(undefined);
+    };
   });
 
   (async () => {
@@ -17,5 +19,5 @@ export default function openWindow(
     close();
   })().catch(console.error);
 
-  return otherWindow;
+  return closePromise;
 }

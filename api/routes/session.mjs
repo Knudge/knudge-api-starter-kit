@@ -1,4 +1,4 @@
-import { KNUDGE_ORIGIN_API } from '../../config.mjs'
+import { HOSTNAME, KNUDGE_ORIGIN_API } from '../../config.mjs'
 
 // ROUTES //////////////////////////////////////////////////////////////////////
 
@@ -13,6 +13,9 @@ export default {
 
 // HANDLERS ////////////////////////////////////////////////////////////////////
 
+/**
+ * @param {import('koa').Context} ctx 
+ */
 async function getSession(ctx) {
   const cookie = ctx.cookies.get('sesh');
 
@@ -21,17 +24,24 @@ async function getSession(ctx) {
     return;
   }
 
-  let { oauth } = ctx.state;
+  let { oauthSession } = ctx.state;
 
-  if (!oauth) {
+  if (!oauthSession) {
     ctx.status = 404;
-    ctx.body = null;
+    ctx.cookies.set('sesh', null, {
+      domain: HOSTNAME,
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 14,
+      overwrite: true,
+      sameSite: 'lax',
+      secure: true
+    });
     return;
   }
 
   let selfResult = await fetch(`${ KNUDGE_ORIGIN_API }/v1/self`, {
       headers: {
-        'authorization': `bearer ${ oauth.access_token }`,
+        'authorization': `bearer ${ oauthSession.access_token }`,
         'accept': 'application/json'
       },
       method: 'GET'

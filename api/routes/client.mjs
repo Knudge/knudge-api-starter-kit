@@ -26,6 +26,8 @@ export default {
  * the UI. This is mainly useful for automated testing, where one can reuse the
  * same knudge-api-starter-kit server for multiple tests and just pass it the
  * client ID when forwarding a client.
+ * 
+ * @param {import('koa').Context} ctx 
  */
 async function handleClientSet(ctx) {
   const { clientID, clientSecret } = ctx.request.body;
@@ -35,7 +37,6 @@ async function handleClientSet(ctx) {
   }));
   ctx.status = 200;
   ctx.body = {
-    clientID,
-    clientSecret
+    clientID
   };
 }

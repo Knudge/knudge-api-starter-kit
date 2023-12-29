@@ -1,5 +1,14 @@
-import { KNUDGE_ORIGIN } from '../../config.mjs'
+import { KNUDGE_ORIGIN_API } from '../../config.mjs'
 
+let BODYABLE = new Set([
+  'PATCH',
+  'POST',
+  'PUT'
+]);
+
+/**
+ * @param {import('koa').Context} ctx 
+ */
 export default async function passthrough(ctx) {
   let prefix = '/api/passthrough/';
 
@@ -13,21 +22,35 @@ export default async function passthrough(ctx) {
     return ctx.throw(400, 'Empty passthrough path');
   }
 
-  let { oauth } = ctx.state;
+  let { oauthSession } = ctx.state;
 
-  if (!oauth) {
+  if (!oauthSession) {
     return ctx.throw(401, 'OAuth authorization not completed')
   }
 
-  let url = `${ KNUDGE_ORIGIN }/xn--0ci/${ knudgeAPIPath }`
+  let url = `${ KNUDGE_ORIGIN_API }/${ knudgeAPIPath }`
 
-  await fetch(url, {
+  let result = await fetch(url, {
     headers: {
-      'authorization': `bearer ${ oauth.access_token }`,
+      'authorization': `bearer ${ oauthSession.access_token }`,
       'accept': ctx.headers.accept,
       'content-type': ctx.headers['content-type']
     },
-    body: ctx.request.body,
+    body: BODYABLE.has(ctx.request.method) ? ctx.request.body : undefined,
     method: ctx.request.method
-  })
+  });
+
+  if (!result.ok) {
+    ctx.status = result.status;
+    ctx.message = result.statusText;
+    return;
+  }
+
+  try {
+    ctx.body = await result.json();
+  } catch (err) {
+    console.error(err);
+  }
+
+  return true;
 }
