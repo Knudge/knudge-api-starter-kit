@@ -77,6 +77,7 @@ export class KnudgeAPIStarterKit extends LitElement {
   }
 
   get knudgeURL(): string {
+    const usp = new URLSearchParams(window.location.search);
     const url = new URL(`${KNUDGE_ORIGIN}/oauth/authorize`);
     const { clientID } = this;
 
@@ -85,7 +86,10 @@ export class KnudgeAPIStarterKit extends LitElement {
     }
 
     url.searchParams.append('response_type', 'code');
-    url.searchParams.append('scope', SCOPES.join('+'));
+    url.searchParams.append(
+      'scope',
+      [...usp.getAll('scope'), SCOPES].join(' ')
+    );
 
     return url.toString();
   }

@@ -43,7 +43,9 @@ export default async function passthrough(ctx) {
   if (!result.ok) {
     ctx.status = result.status;
     ctx.message = result.statusText;
-    return;
+    ctx.response.set('content-type', result.headers.get('content-type'));
+    ctx.body = result.body;
+    return true;
   }
 
   try {
