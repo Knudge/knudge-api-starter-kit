@@ -13,8 +13,7 @@ declare global {
     availTop: number | undefined;
   }
 }
-
-const SCOPES: string[] = ['nudges:read'];
+const SCOPES: string[] = ['nudges:read', 'organizations:read'];
 
 const KNUDGE_ORIGIN = process.env.KNUDGE_ORIGIN;
 
@@ -88,7 +87,7 @@ export class KnudgeAPIStarterKit extends LitElement {
     url.searchParams.append('response_type', 'code');
     url.searchParams.append(
       'scope',
-      [...usp.getAll('scope'), SCOPES].join(' ')
+      (process.env.IS_TEST ? usp.getAll('scope') : SCOPES).join(' ')
     );
 
     return url.toString();

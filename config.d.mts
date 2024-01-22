@@ -1,5 +1,6 @@
 export const CERTIFICATE: import("./dev-certificates-for.mjs").DevCertResult;
 export const HOSTNAME: string;
+export const IS_TEST: boolean;
 export const KNUDGE_CLIENT_ID: string;
 export const KNUDGE_ORIGIN: string;
 export const KNUDGE_ORIGIN_API: string;

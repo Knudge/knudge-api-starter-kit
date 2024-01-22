@@ -7,6 +7,8 @@ export const CERTIFICATE = await getCertificate();
 
 export const HOSTNAME = getHostname();
 
+export const IS_TEST = getIsTest();
+
 export const KNUDGE_CLIENT_ID = getKnudgeClientID();
 
 export const KNUDGE_ORIGIN = getKnudgeOrigin();
@@ -37,6 +39,10 @@ async function getCertificate() {
 
 function getHostname() {
   return 'knudge-api-starter-kit.local';
+}
+
+function getIsTest() {
+  return process.env.IS_TEST ?? false;
 }
 
 function getKnudgeClientID() {
