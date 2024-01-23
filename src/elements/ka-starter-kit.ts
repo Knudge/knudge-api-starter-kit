@@ -63,10 +63,16 @@ export class KnudgeAPIStarterKit extends LitElement {
   // PROPERTIES ////////////////////////////////////////////////////////////////
 
   @state()
-  sessionPromise?: Promise<Response>;
+  sessionPromise?: Promise<any>;
 
   @state()
   session?: any;
+
+  @state()
+  organizationPromise?: Promise<any>;
+
+  @state()
+  organization?: any;
 
   // ACCESSORS /////////////////////////////////////////////////////////////////
 
@@ -85,10 +91,13 @@ export class KnudgeAPIStarterKit extends LitElement {
     }
 
     url.searchParams.append('response_type', 'code');
-    url.searchParams.append(
-      'scope',
-      (process.env.IS_TEST ? usp.getAll('scope') : SCOPES).join(' ')
-    );
+    let scopes = usp.getAll('scope');
+
+    if (!scopes.length) {
+      scopes = SCOPES;
+    }
+
+    url.searchParams.append('scope', scopes.join(' '));
 
     return url.toString();
   }
@@ -168,20 +177,48 @@ export class KnudgeAPIStarterKit extends LitElement {
       ...(clientID ? [['client_id', clientID]] : []),
     ]);
 
-    this.sessionPromise = fetchAPI(`/session?${uspClient}`);
-    this.session = await this.sessionPromise.then(async response => {
+    this.sessionPromise = fetchAPI(`/session?${uspClient}`).then(response => {
       if (!response.ok) {
-        this.sessionPromise = undefined;
         return null;
       }
 
       try {
-        return await response.json();
-      } catch (err) {
+        return response.json();
+      } catch (err: any) {
         console.error(err);
-        this.sessionPromise = undefined;
-        return null;
+        return { error: err.message };
       }
+    });
+
+    this.sessionPromise.then(session => {
+      this.sessionPromise = undefined;
+      this.session = session;
+    });
+
+    this.organizationPromise = this.sessionPromise
+      .then(session => {
+        if (!session) {
+          return null;
+        }
+
+        return fetchAPI(`/passthrough/v1/organization/${session.organization}`);
+      })
+      .then(response => {
+        if (!response?.ok) {
+          return null;
+        }
+
+        try {
+          return response.json();
+        } catch (err: any) {
+          console.error(err);
+          return { error: err.message };
+        }
+      });
+
+    this.organizationPromise.then(organization => {
+      this.organizationPromise = undefined;
+      this.organization = organization;
     });
   }
 
@@ -234,8 +271,11 @@ export class KnudgeAPIStarterKit extends LitElement {
     }
 
     if (this.session) {
-      const { firstName, lastName } = this.session;
-      return html` Connected as ${firstName} ${lastName}. `;
+      const { firstName, id, lastName } = this.session;
+      return html`
+        <p>Connected as ${firstName} ${lastName} — <code>${id}</code></p>
+        ${this.renderOrganization()}
+      `;
     }
 
     return html`
@@ -247,6 +287,24 @@ export class KnudgeAPIStarterKit extends LitElement {
         Connect Knudge account
       </a>
     `;
+  }
+
+  renderOrganization() {
+    if (this.organizationPromise && !this.organization) {
+      return `Org loading...`;
+    }
+
+    if (!this.organization) {
+      return;
+    }
+
+    if (this.organization?.error) {
+      return html`<pre>Error: ${this.organization.error}</pre>`;
+    }
+
+    const { id, name } = this.organization;
+
+    return html` <p>Member of ${name} — <code>${id}</code></p> `;
   }
 }
 
