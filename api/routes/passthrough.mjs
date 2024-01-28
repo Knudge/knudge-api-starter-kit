@@ -40,18 +40,13 @@ export default async function passthrough(ctx) {
     method: ctx.request.method
   });
 
-  if (!result.ok) {
-    ctx.status = result.status;
-    ctx.message = result.statusText;
-    ctx.response.set('content-type', result.headers.get('content-type'));
-    ctx.body = result.body;
-    return true;
-  }
-
+  ctx.status = result.status;
+  ctx.message = result.statusText;
+  ctx.response.set('content-type', result.headers.get('content-type'));
   try {
     ctx.body = await result.json();
-  } catch (err) {
-    console.error(err);
+  } catch {
+    ctx.body = result.body;
   }
 
   return true;
