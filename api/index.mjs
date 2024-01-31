@@ -11,7 +11,16 @@ import getClient from './get-client.mjs';
 
 const app = new Koa(); 
 
-app.use(cors({ credentials: true, origin: URL_WEB.origin }));
+app.use(cors({
+  credentials: true,
+  exposeHeaders: [
+    'server',
+    'x-total-count',
+    'x-total-count-threshold',
+    'knudge-api-version'
+  ],
+  origin: URL_WEB.origin
+}));
 
 app.use(async (ctx, next) => {
   const sessionCookie = ctx.cookies.get('sesh');

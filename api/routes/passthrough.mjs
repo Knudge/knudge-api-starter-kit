@@ -1,6 +1,6 @@
 import { KNUDGE_ORIGIN_API } from '../../config.mjs'
 
-let BODYABLE = new Set([
+const BODYABLE = new Set([
   'PATCH',
   'POST',
   'PUT'
@@ -40,6 +40,7 @@ export default async function passthrough(ctx) {
     method: ctx.request.method
   });
 
+  result.headers.forEach((value, key) => ctx.set(key, value));
   ctx.status = result.status;
   ctx.message = result.statusText;
   ctx.response.set('content-type', result.headers.get('content-type'));
