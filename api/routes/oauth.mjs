@@ -68,8 +68,8 @@ async function handleLink(ctx) {
     }
 
     return ctx.throw(
-      tokenResult.status,
-      `Knudge response: ${ tokenResult.statusText }`
+      tokenResult?.status ?? 500,
+      `Knudge response: ${ tokenResult?.statusText ?? 'Internal Server Error' }`
     );
   }
 
