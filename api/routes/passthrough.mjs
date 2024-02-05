@@ -28,7 +28,7 @@ export default async function passthrough(ctx) {
     return ctx.throw(401, 'OAuth authorization not completed')
   }
 
-  let url = `${ KNUDGE_ORIGIN_API }/${ knudgeAPIPath }`
+  let url = `${ KNUDGE_ORIGIN_API }/${ knudgeAPIPath }${ ctx.request.search }`
 
   let result = await fetch(url, {
     headers: {
