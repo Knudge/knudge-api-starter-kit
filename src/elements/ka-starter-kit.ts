@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 
 import { LitElement, html, css } from 'lit';
+import { until } from 'lit/directives/until.js';
 import { customElement, state } from 'lit/decorators.js';
 
 import { JSONRequestInit } from './ka-starter-kit.types';
@@ -13,7 +14,15 @@ declare global {
     availTop: number | undefined;
   }
 }
-const SCOPES: string[] = ['nudges:read', 'organizations:read'];
+
+// These are the scopes required for this example app to display what it does.
+// Your app's required scopes may differ!
+const SCOPES: string[] = [
+  'contacts:read',
+  'members:read',
+  'nudges:read',
+  'organizations:read',
+];
 
 const KNUDGE_ORIGIN = process.env.KNUDGE_ORIGIN;
 
@@ -26,7 +35,7 @@ export class KnudgeAPIStarterKit extends LitElement {
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      font-size: calc(10px + 2vmin);
+      font-size: calc(8px + 2vmin);
       color: #1a2b42;
       max-width: 960px;
       margin: 0 auto;
@@ -43,7 +52,7 @@ export class KnudgeAPIStarterKit extends LitElement {
     }
 
     .app-footer {
-      font-size: calc(12px + 0.5vmin);
+      font-size: calc(10px + 0.5vmin);
       align-items: center;
     }
 
@@ -58,9 +67,33 @@ export class KnudgeAPIStarterKit extends LitElement {
       color: white;
       border-radius: var(--ka-common-border-radius);
     }
+
+    table th {
+      font-size: calc(12px + 1vmin);
+      text-align: start;
+    }
+
+    table tbody tr {
+      border-top: 1px solid black;
+    }
+
+    table td {
+      font-size: calc(12px + 0.8vmin);
+      padding: 6px;
+      text-align: start;
+    }
   `;
 
   // PROPERTIES ////////////////////////////////////////////////////////////////
+
+  @state()
+  connecting: boolean = false;
+
+  @state()
+  contactsPromise?: Promise<any>;
+
+  @state()
+  membersPromise?: Promise<any>;
 
   @state()
   sessionPromise?: Promise<any>;
@@ -70,9 +103,6 @@ export class KnudgeAPIStarterKit extends LitElement {
 
   @state()
   organizationPromise?: Promise<any>;
-
-  @state()
-  organization?: any;
 
   // ACCESSORS /////////////////////////////////////////////////////////////////
 
@@ -151,11 +181,13 @@ export class KnudgeAPIStarterKit extends LitElement {
 
   async handleClickConnectKnudgeAccount(event: MouseEvent) {
     event.preventDefault();
+    this.connecting = true;
     await openWindow(this.knudgeURL, 'knudge', this.windowFeatures);
   }
 
   handleFocus = async () => {
-    if (!this.session) {
+    if (!this.session && this.connecting) {
+      this.connecting = false;
       await this.fetchSession();
     }
   };
@@ -177,48 +209,33 @@ export class KnudgeAPIStarterKit extends LitElement {
       ...(clientID ? [['client_id', clientID]] : []),
     ]);
 
-    this.sessionPromise = fetchAPI(`/session?${uspClient}`).then(response => {
-      if (!response.ok) {
-        return null;
-      }
-
-      try {
-        return response.json();
-      } catch (err: any) {
-        console.error(err);
-        return { error: err.message };
-      }
-    });
+    this.sessionPromise = fetchAPIJSON(`/session?${uspClient}`);
 
     this.sessionPromise.then(session => {
-      this.sessionPromise = undefined;
       this.session = session;
     });
 
-    this.organizationPromise = this.sessionPromise
-      .then(session => {
-        if (!session) {
-          return null;
-        }
+    this.organizationPromise = this.sessionPromise.then(
+      session =>
+        session &&
+        fetchAPIJSON(`/passthrough/v1/organization/${session.organization}`)
+    );
 
-        return fetchAPI(`/passthrough/v1/organization/${session.organization}`);
-      })
-      .then(response => {
-        if (!response?.ok) {
-          return null;
-        }
+    this.contactsPromise = this.sessionPromise.then(session => {
+      if (!session) return null;
 
-        try {
-          return response.json();
-        } catch (err: any) {
-          console.error(err);
-          return { error: err.message };
-        }
-      });
+      const usp = new URLSearchParams([['relationship', 'contact']]);
+      return fetchAPIJSON(
+        `/passthrough/v1/organization/${session.organization}/user?${usp}`
+      );
+    });
 
-    this.organizationPromise.then(organization => {
-      this.organizationPromise = undefined;
-      this.organization = organization;
+    this.membersPromise = this.sessionPromise.then(session => {
+      if (!session) return null;
+      const usp = new URLSearchParams([['relationship', 'member']]);
+      return fetchAPIJSON(
+        `/passthrough/v1/organization/${session.organization}/user?${usp}`
+      );
     });
   }
 
@@ -252,7 +269,7 @@ export class KnudgeAPIStarterKit extends LitElement {
       <main>
         <h1>Knudge API starter app</h1>
 
-        ${this.renderAction()}
+        ${this.renderAction()} ${this.renderContacts()} ${this.renderMembers()}
       </main>
 
       <p class="app-footer">
@@ -262,49 +279,118 @@ export class KnudgeAPIStarterKit extends LitElement {
   }
 
   renderAction() {
-    if (this.sessionPromise && !this.session) {
-      return 'Loading...';
-    }
+    return until(
+      this.sessionPromise
+        ?.then(session => {
+          if (!session) {
+            return html`
+              <a
+                class="button"
+                @click="${this.handleClickConnectKnudgeAccount}"
+                href="${this.knudgeURL}"
+              >
+                Connect Knudge account
+              </a>
+            `;
+          }
 
-    if (this.session?.error) {
-      return html`<pre>Error: ${this.session.error}</pre>`;
-    }
+          const { firstName, id, lastName } = this.session;
+          return html`
+            <p>Connected as ${firstName} ${lastName} — <code>${id}</code></p>
+            ${this.renderOrganization()}
+          `;
+        })
+        .catch(err => html` <pre>Error: ${err}</pre> `),
+      'Loading...'
+    );
+  }
 
-    if (this.session) {
-      const { firstName, id, lastName } = this.session;
-      return html`
-        <p>Connected as ${firstName} ${lastName} — <code>${id}</code></p>
-        ${this.renderOrganization()}
-      `;
-    }
-
+  renderContacts() {
     return html`
-      <a
-        class="button"
-        @click="${this.handleClickConnectKnudgeAccount}"
-        href="${this.knudgeURL}"
-      >
-        Connect Knudge account
-      </a>
+      <h2>Contacts</h2>
+      ${until(
+        this.contactsPromise
+          ?.then(
+            contacts =>
+              contacts &&
+              html`
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Email</th>
+                      <th>Name</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${contacts.map(
+                      (contact: any) => html`
+                        <tr>
+                          <td><pre>${contact.id}</pre></td>
+                          <td>${contact.emailAddressPrimary}</td>
+                          <td>${contact.firstName} ${contact.lastName}</td>
+                        </tr>
+                      `
+                    )}
+                  </tbody>
+                </table>
+              `
+          )
+          .catch(err => html` <pre>Error: ${err}</pre> `)
+      )}
+    `;
+  }
+
+  renderMembers() {
+    return html`
+      <h2>Members</h2>
+      ${until(
+        this.membersPromise
+          ?.then(
+            members =>
+              members &&
+              html`
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Email</th>
+                      <th>Name</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${members.map(
+                      (member: any) => html`
+                        <tr>
+                          <td><pre>${member.id}</pre></td>
+                          <td>${member.emailAddressPrimary}</td>
+                          <td>${member.firstName} ${member.lastName}</td>
+                        </tr>
+                      `
+                    )}
+                  </tbody>
+                </table>
+              `
+          )
+          .catch(err => html` <pre>Error: ${err}</pre> `)
+      )}
     `;
   }
 
   renderOrganization() {
-    if (this.organizationPromise && !this.organization) {
-      return `Org loading...`;
-    }
+    return until(
+      this.organizationPromise
+        ?.then(organization => {
+          if (!organization) {
+            return '';
+          }
 
-    if (!this.organization) {
-      return;
-    }
-
-    if (this.organization?.error) {
-      return html`<pre>Error: ${this.organization.error}</pre>`;
-    }
-
-    const { id, name } = this.organization;
-
-    return html` <p>Member of ${name} — <code>${id}</code></p> `;
+          const { id, name } = organization;
+          return html`<p>Member of ${name} — <code>${id}</code></p>`;
+        })
+        .catch(err => html` <pre>Error: ${err}</pre> `) ?? '',
+      'Org loading...'
+    );
   }
 }
 
@@ -323,4 +409,28 @@ async function fetchAPI(
     method,
     ...init,
   });
+}
+
+async function fetchAPIJSON(
+  path: string,
+  opts?: JSONRequestInit
+): Promise<any> {
+  const response = await fetchAPI(path, opts);
+
+  if (!response?.ok) {
+    if (response.status === 404) {
+      return null;
+    }
+
+    throw new Error(
+      `Failed to fetch "${path}": ${response?.status} ${response?.statusText}`
+    );
+  }
+
+  try {
+    return response.json();
+  } catch (err: any) {
+    console.error(err);
+    throw err;
+  }
 }

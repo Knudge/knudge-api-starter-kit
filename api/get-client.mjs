@@ -9,7 +9,7 @@ export default async function getClient(ctx) {
   let clientID = usp.get('client_id');
   let clientSecret;
 
-  if (clientID) {
+  if (clientID && clientID !== KNUDGE_CLIENT_ID) {
     try {
       ({ clientID, clientSecret } = JSON.parse(
         await kvStore.read(`client-${ clientID }`)
