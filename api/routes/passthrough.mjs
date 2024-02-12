@@ -36,7 +36,9 @@ export default async function passthrough(ctx) {
       'accept': ctx.headers.accept,
       'content-type': ctx.headers['content-type']
     },
-    body: BODYABLE.has(ctx.request.method) ? ctx.request.body : undefined,
+    body: BODYABLE.has(ctx.request.method)
+      ? JSON.stringify(ctx.request.body)
+      : undefined,
     method: ctx.request.method
   });
 
