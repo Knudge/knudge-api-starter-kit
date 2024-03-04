@@ -109,7 +109,11 @@
         {
           "ignorePackages": true
         }
-      ]
+      ],
+      "no-unused-expressions": 0,
+      "import/no-extraneous-dependencies": [ "error", {
+        "devDependencies": [ "**/*.test.*", "**/*.spec.*" ]
+      } ]
     }
   },
   "prettier": {
