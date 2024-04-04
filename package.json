@@ -6,7 +6,7 @@
   "version": "0.0.0",
   "type": "module",
   "engines": {
-    "node": "^21.6.1",
+    "node": "^21.7.2",
     "npm": "^10.2.5"
   },
   "scripts": {
