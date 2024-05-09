@@ -68,7 +68,7 @@ function getReloadAll() {
 
     await killAppProcess(appProcess);
     appProcess = createAppProcess(appProcess);
-  }, 500, { maxWait: 1_000 });
+  }, 500, { maxWait: 1_000, leading: false, trailing: true });
 }
 
 function onAppProcessError() {
