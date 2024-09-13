@@ -6,8 +6,8 @@
   "version": "0.0.0",
   "type": "module",
   "engines": {
-    "node": "^22.4.1",
-    "npm": "^10.2.5"
+    "node": "^22.8.0",
+    "npm": "^10.8.3"
   },
   "scripts": {
     "lint": "eslint --ext .ts,.html . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
