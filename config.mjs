@@ -3,6 +3,8 @@ import devCertificateFor from './dev-certificates-for.mjs';
 
 // DEFINITIONS /////////////////////////////////////////////////////////////////
 
+export const APP_NAME_SUFFIX = await getAppNameSuffix();
+
 export const CERTIFICATE = await getCertificate();
 
 export const HOSTNAME = getHostname();
@@ -30,6 +32,10 @@ export const URL_API = getURLAPI();
 export const URL_WEB = getURLWeb();
 
 // GETTERS /////////////////////////////////////////////////////////////////////
+
+function getAppNameSuffix() {
+  return process.env.APP_NAME_SUFFIX ?? '';
+}
 
 async function getCertificate() {
   return await devCertificateFor(getHostname(), {
