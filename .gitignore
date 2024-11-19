@@ -24,6 +24,7 @@
 /certs/
 /.oauth*
 .env
+.env.dev-cloud
 
 storybook-static
 custom-elements.json
