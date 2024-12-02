@@ -68,6 +68,10 @@ export class KnudgeAPIStarterKit extends LitElement {
       border-radius: var(--ka-common-border-radius);
     }
 
+    pre {
+      font-size: calc(12px + 1vmin);
+    }
+
     table th {
       font-size: calc(12px + 1vmin);
       text-align: start;
@@ -215,6 +219,7 @@ export class KnudgeAPIStarterKit extends LitElement {
       this.session = session;
     });
 
+    this.sessionPromise.then(session => console.log('--session--', session));
     this.organizationPromise = this.sessionPromise.then(
       session =>
         session &&
@@ -300,7 +305,7 @@ export class KnudgeAPIStarterKit extends LitElement {
             ${this.renderOrganization()}
           `;
         })
-        .catch(err => html` <pre>Error: ${err}</pre> `),
+        .catch(err => html` <pre>${err}</pre> `),
       'Loading...'
     );
   }
@@ -336,7 +341,7 @@ export class KnudgeAPIStarterKit extends LitElement {
                 </table>
               `
           )
-          .catch(err => html` <pre>Error: ${err}</pre> `)
+          .catch(err => html` <pre>${err}</pre> `)
       )}
     `;
   }
@@ -372,7 +377,7 @@ export class KnudgeAPIStarterKit extends LitElement {
                 </table>
               `
           )
-          .catch(err => html` <pre>Error: ${err}</pre> `)
+          .catch(err => html` <pre>${err}</pre> `)
       )}
     `;
   }
@@ -388,7 +393,7 @@ export class KnudgeAPIStarterKit extends LitElement {
           const { id, name } = organization;
           return html`<p>Member of ${name} — <code>${id}</code></p>`;
         })
-        .catch(err => html` <pre>Error: ${err}</pre> `) ?? '',
+        .catch(err => html` <pre>${err}</pre> `) ?? '',
       'Org loading...'
     );
   }
@@ -422,8 +427,19 @@ async function fetchAPIJSON(
       return null;
     }
 
+    let json;
+
+    try {
+      json = await response.json();
+    } catch (err) {
+      console.error(err);
+    }
+
     throw new Error(
-      `Failed to fetch "${path}": ${response?.status} ${response?.statusText}`
+      `Failed to fetch\n` +
+        `"${path}"\n` +
+        `${response?.status} ${response?.statusText}\n` +
+        `${json?.message ?? ''}`
     );
   }
 

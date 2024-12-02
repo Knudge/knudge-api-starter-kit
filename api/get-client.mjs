@@ -2,7 +2,7 @@ import { KNUDGE_CLIENT_ID, KNUDGE_SECRET } from '../config.mjs';
 import * as kvStore from './fs-key-value-store.mjs';
 
 /**
- * @param {import('koa').Context} ctx 
+ * @param {import('koa').Context} ctx
  */
 export default async function getClient(ctx) {
   let usp = new URLSearchParams(ctx.request.search);
@@ -20,8 +20,8 @@ export default async function getClient(ctx) {
     }
   }
 
-  clientID ??= KNUDGE_CLIENT_ID;
-  clientSecret ??= KNUDGE_SECRET;
+  clientID ||= KNUDGE_CLIENT_ID;
+  clientSecret ||= KNUDGE_SECRET;
 
   let source = `${ clientID }:${ clientSecret }`;
   let authorizationBase64 = Buffer
