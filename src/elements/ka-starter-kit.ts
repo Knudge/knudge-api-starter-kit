@@ -219,7 +219,6 @@ export class KnudgeAPIStarterKit extends LitElement {
       this.session = session;
     });
 
-    this.sessionPromise.then(session => console.log('--session--', session));
     this.organizationPromise = this.sessionPromise.then(
       session =>
         session &&
