@@ -1,6 +1,6 @@
 import util from 'node:util';
 
-import { customAlphabet } from 'nanoid/async';
+import { customAlphabet } from 'nanoid';
 import joi from 'joi';
 
 import * as kvStore from '../fs-key-value-store.mjs';
@@ -35,8 +35,8 @@ export default {
  * Take the authorization code from the client and exchange it with Knudge's API
  * for an access token, which will allow further requests to be made on behalf
  * of the user.
- * 
- * @param {import('koa').Context} ctx 
+ *
+ * @param {import('koa').Context} ctx
  */
 async function handleLink(ctx) {
   let tokenResult;

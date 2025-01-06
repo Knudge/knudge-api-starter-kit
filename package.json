@@ -28,7 +28,7 @@
     "koa-bodyparser": "^4.4.1",
     "lit": "^3.1.4",
     "lodash.debounce": "^4.0.8",
-    "nanoid": "^4.0.2"
+    "nanoid": "^5.0.9"
   },
   "overrides": {
     "devcert": {
