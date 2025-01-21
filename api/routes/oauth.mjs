@@ -74,7 +74,7 @@ async function handleLink(ctx) {
   }
 
   const tokenJSON = await tokenResult.json();
-  const cookie = await generateCookie();
+  const cookie = generateCookie();
 
   await kvStore.write(`sesh-${ cookie }`, JSON.stringify(tokenJSON));
   ctx.cookies.set('sesh', cookie, {
