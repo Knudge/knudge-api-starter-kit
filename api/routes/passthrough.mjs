@@ -6,17 +6,17 @@ const BODYABLE = new Set([
   'PUT'
 ]);
 
+const PREFIX = '/api/passthrough/';
+
 /**
  * @param {import('koa').Context} ctx 
  */
 export default async function passthrough(ctx) {
-  let prefix = '/api/passthrough/';
-
-  if (!ctx.request.path.startsWith(prefix)) {
+  if (!ctx.request.path.startsWith(PREFIX)) {
     return false;
   }
 
-  let knudgeAPIPath = ctx.request.path.substring(prefix.length);
+  let knudgeAPIPath = ctx.request.path.substring(PREFIX.length);
 
   if (!knudgeAPIPath) {
     return ctx.throw(400, 'Empty passthrough path');
@@ -34,7 +34,9 @@ export default async function passthrough(ctx) {
     headers: {
       'authorization': `bearer ${ oauthSession.access_token }`,
       'accept': ctx.headers.accept,
-      'content-type': ctx.headers['content-type']
+      'content-type': ctx.headers['content-type'],
+      'knudge-api-version': ctx.headers['knudge-api-version'] ?? '',
+      'x-content-format': ctx.headers['x-content-format'] ?? ''
     },
     body: BODYABLE.has(ctx.request.method)
       ? JSON.stringify(ctx.request.body)

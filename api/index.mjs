@@ -17,6 +17,7 @@ app.use(cors({
     'server',
     'x-total-count',
     'x-total-count-threshold',
+    'x-content-format',
     'knudge-api-version'
   ],
   origin: URL_WEB.origin
