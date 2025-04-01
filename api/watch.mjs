@@ -58,8 +58,7 @@ async function killAppProcess(appProcess) {
 
 function getReloadAll() {
   let appProcess;
-
-  return debounce(async (action, filepath) => {
+  let debounced = debounce(async (action, filepath) => {
     if (filepath) {
       console.log('API server', action, filepath);
     } else {
@@ -67,8 +66,16 @@ function getReloadAll() {
     }
 
     await killAppProcess(appProcess);
+    // If we queued another reload while this one was running, cancel it.
+    debounced.cancel();
     appProcess = createAppProcess(appProcess);
-  }, 500, { maxWait: 1_000, leading: false, trailing: true });
+  }, 500, {
+    maxWait: 2_000,
+    leading: false,
+    trailing: true
+  });
+
+  return debounced;
 }
 
 function onAppProcessError() {
