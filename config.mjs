@@ -31,6 +31,12 @@ export const URL_API = getURLAPI();
 
 export const URL_WEB = getURLWeb();
 
+if (!getPortAPI()) {
+  console.warn(new Error(
+    `.env file likely did not load correctly, please copy .env.example`
+  ));
+}
+
 // GETTERS /////////////////////////////////////////////////////////////////////
 
 function getAppNameSuffix() {
