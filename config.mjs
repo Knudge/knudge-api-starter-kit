@@ -50,7 +50,7 @@ async function getCertificate() {
 }
 
 function getHostname() {
-  return 'knudge-api-starter-kit.local';
+  return 'knudge-api-starter-kit.test';
 }
 
 function getIsTest() {

@@ -68,6 +68,10 @@ export class KnudgeAPIStarterKit extends LitElement {
       border-radius: var(--ka-common-border-radius);
     }
 
+    a {
+      color: var(--ka-color-primary);
+    }
+
     pre {
       font-size: calc(12px + 1vmin);
     }
