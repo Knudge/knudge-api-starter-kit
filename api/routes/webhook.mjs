@@ -20,7 +20,6 @@ export default async function passthrough(ctx) {
   }
 
   const name = ctx.request.path.substring(PREFIX.length);
-  const url = `${KNUDGE_ORIGIN_API}/v1/webhook/${name}`;
   const { oauthSession } = ctx.state;
 
   // Broadcast webhook data to WebSocket clients
@@ -38,18 +37,8 @@ export default async function passthrough(ctx) {
   // Broadcast to WebSocket clients
   webSocketManager.broadcast(webhookData);
 
-  // If no OAuth session, return 401
-  if (!oauthSession) {
-    ctx.status = 401;
-    ctx.body = { error: 'Unauthorized' };
-    return true;
-  }
-
-  try {
-    ctx.body = await result.json();
-  } catch {
-    ctx.body = result.body;
-  }
+  ctx.status = 200;
+  ctx.body = { message: 'Webhook received' };
 
   return true;
 }
