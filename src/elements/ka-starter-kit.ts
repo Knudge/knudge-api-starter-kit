@@ -112,6 +112,9 @@ export class KnudgeAPIStarterKit extends LitElement {
   @state()
   organizationPromise?: Promise<any>;
 
+  @state()
+  socket: WebSocket | null = null;
+
   // ACCESSORS /////////////////////////////////////////////////////////////////
 
   get clientID() {
@@ -202,6 +205,9 @@ export class KnudgeAPIStarterKit extends LitElement {
 
   async handleRoute() {
     switch (window.location.pathname) {
+      case '/webhook-passthrough':
+        await this.webhookInit();
+        break;
       case '/oauth/knudge':
         await this.oauthInit();
         break;
@@ -268,6 +274,52 @@ export class KnudgeAPIStarterKit extends LitElement {
     if (result.ok) {
       window.close();
     }
+  }
+
+  async webhookInit() {
+    const usp = new URLSearchParams(window.location.search);
+    const name = usp.get('name');
+
+    this.socket = new WebSocket(`wss://${location.host}/ws`);
+
+    this.socket.send(
+      JSON.stringify({
+        type: 'webhook-open',
+        name,
+      })
+    );
+
+    this.socket.addEventListener('open', event => {
+      console.log('WebSocket connection established');
+    });
+
+    this.socket.addEventListener('message', event => {
+      const data = JSON.parse(event.data);
+      console.log('Message from server:', data.name ?? 'unnamed event', data);
+      dispatchEvent(
+        new CustomEvent('ws-message-webhook', {
+          detail: { data },
+        })
+      );
+
+      if (data.name) {
+        dispatchEvent(
+          new CustomEvent(`ws-message-${data.name}`, {
+            detail: { data },
+          })
+        );
+      }
+    });
+
+    this.socket.addEventListener('close', event => {
+      this.socket = null;
+      console.log('WebSocket connection closed', event.code, event.reason);
+    });
+
+    this.socket.addEventListener('error', event => {
+      this.socket = null;
+      console.error('WebSocket error:', event);
+    });
   }
 
   // RENDER ////////////////////////////////////////////////////////////////////

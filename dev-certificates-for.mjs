@@ -2,12 +2,11 @@ import devcert from 'devcert';
 import fs from 'node:fs/promises';
 
 export default async function devCertificateFor(domains, {
-  getCaPath,
   prefix = './certs',
   name = 'tls'
 }={}) {
   let { key, cert, ...etc } = await devcert.certificateFor(domains, {
-    getCaPath
+    getCaPath: true
   });
 
   let certPath = `${ prefix }/${ name }.cert`;

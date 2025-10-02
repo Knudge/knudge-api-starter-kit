@@ -44,9 +44,7 @@ function getAppNameSuffix() {
 }
 
 async function getCertificate() {
-  return await devCertificateFor(getHostname(), {
-    getCaPath: true
-  });
+  return await devCertificateFor(getHostname());
 }
 
 function getHostname() {

@@ -2,12 +2,14 @@ import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import https from 'node:https';
 import cors from '@koa/cors';
+import { WebSocketServer } from 'ws';
 
 import { CERTIFICATE, KNUDGE_ORIGIN_API, URL_WEB } from '../config.mjs';
 
 import * as kvStore from './fs-key-value-store.mjs';
 import handleAPIRequest from './handle-api-request.mjs';
 import getClient from './get-client.mjs';
+import { webSocketManager } from './websocket-manager.mjs';
 
 const app = new Koa(); 
 
@@ -103,6 +105,33 @@ app.use(async (ctx, next) => {
 const { key, cert } = CERTIFICATE;
 const serverOptions = { cert, key };
 
-https.createServer(serverOptions, app.callback())
-  .once('listening', () => console.log('API server listening'))
-  .listen(10443)
+const server = https.createServer(serverOptions, app.callback());
+
+// Create WebSocket server
+const wss = new WebSocketServer({
+  server,
+  path: '/ws'
+});
+
+// Handle WebSocket connections
+wss.on('connection', (ws, req) => {
+  console.log(`New WebSocket connection from ${req.socket.remoteAddress}`);
+  webSocketManager.addClient(ws);
+});
+
+wss.on('close', (ws) => {
+  console.log('WebSocket connection closed');
+  webSocketManager.removeClient(ws);
+});
+
+// Handle WebSocket server errors
+wss.on('error', (error) => {
+  console.error('WebSocket server error:', error);
+});
+
+server
+  .once('listening', () => {
+    console.log('API server listening on port 10443');
+    console.log('WebSocket server available at wss://localhost:10443/ws');
+  })
+  .listen(10443);
