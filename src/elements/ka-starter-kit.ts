@@ -295,20 +295,12 @@ export class KnudgeAPIStarterKit extends LitElement {
 
     this.socket.addEventListener('message', event => {
       const data = JSON.parse(event.data);
+      const detail = { data };
       console.log('Message from server:', data.name ?? 'unnamed event', data);
-      dispatchEvent(
-        new CustomEvent('ws-message-webhook', {
-          detail: { data },
-        })
-      );
+      dispatchEvent(new CustomEvent('ws-message-webhook', { detail }));
 
-      if (data.name) {
-        dispatchEvent(
-          new CustomEvent(`ws-message-${data.name}`, {
-            detail: { data },
-          })
-        );
-      }
+      if (data.name)
+        dispatchEvent(new CustomEvent(`ws-message-${data.name}`, { detail }));
     });
 
     this.socket.addEventListener('close', event => {
