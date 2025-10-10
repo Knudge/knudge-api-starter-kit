@@ -40,6 +40,7 @@ export default {
  */
 async function handleLink(ctx) {
   let tokenResult;
+  let { body } = ctx.request;
 
   try {
     let { authorizationBase64 } = await getClient(ctx);
@@ -51,7 +52,7 @@ async function handleLink(ctx) {
         'content-type': 'application/x-www-form-urlencoded'
       },
       body: new URLSearchParams({
-        code: ctx.request.body.code,
+        code: body.code,
         grant_type: 'authorization_code'
       }).toString(),
       method: 'POST'
@@ -76,7 +77,7 @@ async function handleLink(ctx) {
   const tokenJSON = await tokenResult.json();
   const cookie = generateCookie();
 
-  await kvStore.write(`sesh-${ cookie }`, JSON.stringify(tokenJSON));
+  await kvStore.write(`sesh-${ cookie }`, JSON.stringify(tokenJSON, null, 2));
   ctx.cookies.set('sesh', cookie, {
     domain: HOSTNAME,
     httpOnly: true,
