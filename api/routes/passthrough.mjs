@@ -26,6 +26,9 @@ export default async function passthrough(ctx) {
 
   let { oauthSession } = ctx.state;
 
+  if (new URLSearchParams(ctx.request.search).has('client-only'))
+    oauthSession = null;
+
   let authorization;
 
   if (oauthSession) {

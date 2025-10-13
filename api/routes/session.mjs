@@ -2,8 +2,12 @@ import { HOSTNAME, KNUDGE_ORIGIN_API } from '../../config.mjs'
 
 // ROUTES //////////////////////////////////////////////////////////////////////
 
+/** @param {import('koa').Context} ctx */
 export default {
   '/api/session': {
+    'DELETE': {
+      handle: deleteSession
+    },
     'GET': {
       handle: getSession,
       public: true
@@ -13,9 +17,21 @@ export default {
 
 // HANDLERS ////////////////////////////////////////////////////////////////////
 
-/**
- * @param {import('koa').Context} ctx 
- */
+/** @param {import('koa').Context} ctx */
+async function deleteSession(ctx) {
+  ctx.status = 404;
+  ctx.cookies.set('sesh', null, {
+    domain: HOSTNAME,
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 * 14,
+    overwrite: true,
+    sameSite: 'lax',
+    secure: true
+  });
+  return;
+}
+
+/** @param {import('koa').Context} ctx */
 async function getSession(ctx) {
   const cookie = ctx.cookies.get('sesh');
 

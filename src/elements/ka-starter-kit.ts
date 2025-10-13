@@ -37,7 +37,7 @@ export class KnudgeAPIStarterKit extends LitElement {
       justify-content: flex-start;
       font-size: calc(8px + 2vmin);
       color: #1a2b42;
-      max-width: 960px;
+      max-width: min(100vw, 960px);
       margin: 0 auto;
       text-align: center;
       background-color: var(--ka-starter-kit-background-color);
@@ -198,6 +198,21 @@ export class KnudgeAPIStarterKit extends LitElement {
     await openWindow(this.knudgeURL, 'knudge', this.windowFeatures);
   }
 
+  async handleClickDisconnect() {
+    const { clientID } = this;
+    const uspClient = new URLSearchParams([
+      ...(clientID ? [['client_id', clientID]] : []),
+    ]);
+    await fetchAPI(`/session?${uspClient}`, {
+      method: 'DELETE',
+    });
+    this.contactsPromise = undefined;
+    this.membersPromise = undefined;
+    this.organizationPromise = undefined;
+    this.session = null;
+    this.sessionPromise = new Promise(r => r(null));
+  }
+
   handleFocus = async () => {
     if (!this.session && this.connecting) {
       this.connecting = false;
@@ -356,6 +371,9 @@ export class KnudgeAPIStarterKit extends LitElement {
           const { firstName, id, lastName } = this.session;
           return html`
             <p>Connected as ${firstName} ${lastName} — <code>${id}</code></p>
+            <button class="button" @click="${this.handleClickDisconnect}">
+              Disconnect
+            </button>
             ${this.renderOrganization()}
           `;
         })
@@ -369,31 +387,31 @@ export class KnudgeAPIStarterKit extends LitElement {
       <h2>Contacts</h2>
       ${until(
         this.contactsPromise
-          ?.then(
-            contacts =>
-              contacts &&
-              html`
-                <table>
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Email</th>
-                      <th>Name</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${contacts.map(
-                      (contact: any) => html`
-                        <tr>
-                          <td><pre>${contact.id}</pre></td>
-                          <td>${contact.emailAddressPrimary}</td>
-                          <td>${contact.firstName} ${contact.lastName}</td>
-                        </tr>
-                      `
-                    )}
-                  </tbody>
-                </table>
-              `
+          ?.then(contacts =>
+            contacts
+              ? html`
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th>Name</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${contacts.map(
+                        (contact: any) => html`
+                          <tr>
+                            <td><pre>${contact.id}</pre></td>
+                            <td>${contact.emailAddressPrimary}</td>
+                            <td>${contact.firstName} ${contact.lastName}</td>
+                          </tr>
+                        `
+                      )}
+                    </tbody>
+                  </table>
+                `
+              : html` <em>Connect to load contacts</em> `
           )
           .catch(err => html` <pre>${err}</pre> `)
       )}
@@ -405,31 +423,31 @@ export class KnudgeAPIStarterKit extends LitElement {
       <h2>Members</h2>
       ${until(
         this.membersPromise
-          ?.then(
-            members =>
-              members &&
-              html`
-                <table>
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Email</th>
-                      <th>Name</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${members.map(
-                      (member: any) => html`
-                        <tr>
-                          <td><pre>${member.id}</pre></td>
-                          <td>${member.emailAddressPrimary}</td>
-                          <td>${member.firstName} ${member.lastName}</td>
-                        </tr>
-                      `
-                    )}
-                  </tbody>
-                </table>
-              `
+          ?.then(members =>
+            members
+              ? html`
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th>Name</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${members.map(
+                        (member: any) => html`
+                          <tr>
+                            <td><pre>${member.id}</pre></td>
+                            <td>${member.emailAddressPrimary}</td>
+                            <td>${member.firstName} ${member.lastName}</td>
+                          </tr>
+                        `
+                      )}
+                    </tbody>
+                  </table>
+                `
+              : html` <em>Connect to load members</em> `
           )
           .catch(err => html` <pre>${err}</pre> `)
       )}

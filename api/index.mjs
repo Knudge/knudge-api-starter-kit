@@ -11,12 +11,14 @@ import handleAPIRequest from './handle-api-request.mjs';
 import getClient from './get-client.mjs';
 import { webSocketManager } from './websocket-manager.mjs';
 
-const app = new Koa(); 
+const app = new Koa();
 
 app.use(cors({
   credentials: true,
   exposeHeaders: [
     'server',
+    'x-page-last-before',
+    'x-page-next-after',
     'x-total-count',
     'x-total-count-threshold',
     'x-content-format',
