@@ -32,10 +32,10 @@ export default async function passthrough(ctx) {
   let authorization;
 
   if (oauthSession) {
-    console.log(`${ d } ${ ctx.request.method } ${ ctx.request.path } session`);
+    console.log(`${ d } ${ ctx.request.method } ${ ctx.request.path } (session)`);
     authorization = `bearer ${ oauthSession.access_token }`;
   } else {
-    console.log(`${ d } ${ ctx.request.method } ${ ctx.request.path } client`);
+    console.log(`${ d } ${ ctx.request.method } ${ ctx.request.path } (client)`);
     let { authorizationBase64 } = await getClient(ctx);
     authorization = `basic ${ authorizationBase64 }`;
   }

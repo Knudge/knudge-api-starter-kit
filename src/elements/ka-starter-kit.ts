@@ -182,7 +182,7 @@ export class KnudgeAPIStarterKit extends LitElement {
     super.connectedCallback?.();
     window.addEventListener('focus', this.handleFocus);
     if (new URLSearchParams(window.location.search).has('code_only'))
-      localStorage.setItem('code_only', 'true');
+      sessionStorage.setItem('code_only', 'true');
   }
 
   disconnectedCallback(): void {
@@ -278,7 +278,7 @@ export class KnudgeAPIStarterKit extends LitElement {
       throw new Error('No code param provided in OAuth path');
     }
 
-    if (localStorage.getItem('code_only')) {
+    if (sessionStorage.getItem('code_only')) {
       // Allow a user or automated test to grab the code from the URL
       return;
     }
