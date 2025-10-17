@@ -1,7 +1,6 @@
 import fs from 'node:fs/promises';
-import { APP_NAME_SUFFIX } from '../config.mjs';
 
-const DB_PATH = `./.tmp/db${ APP_NAME_SUFFIX && `-${ APP_NAME_SUFFIX }` }`;
+const DB_PATH = `./.tmp/db`;
 
 export async function remove(key) {
   await fs.rm(getPath(key));

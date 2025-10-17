@@ -1,4 +1,3 @@
-export const APP_NAME_SUFFIX: string;
 export const CERTIFICATE: import("./dev-certificates-for.mjs").DevCertResult;
 export const HOSTNAME: string;
 export const IS_TEST: boolean;
