@@ -248,12 +248,12 @@ export class KnudgeAPIStarterKit extends LitElement {
 
     this.organizationPromise = this.sessionPromise.then(
       session =>
-        session &&
+        session?.organization &&
         fetchAPIJSON(`/passthrough/v1/organization/${session.organization}`)
     );
 
     this.contactsPromise = this.sessionPromise.then(session => {
-      if (!session) return null;
+      if (!session?.organization) return null;
 
       const usp = new URLSearchParams([['relationship', 'contact']]);
       return fetchAPIJSON(
@@ -262,7 +262,7 @@ export class KnudgeAPIStarterKit extends LitElement {
     });
 
     this.membersPromise = this.sessionPromise.then(session => {
-      if (!session) return null;
+      if (!session?.organization) return null;
       const usp = new URLSearchParams([['relationship', 'member']]);
       return fetchAPIJSON(
         `/passthrough/v1/organization/${session.organization}/user?${usp}`
