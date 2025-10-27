@@ -65,7 +65,7 @@ async function handleLink(ctx) {
     console.error(util.inspect(tokenResult, { depth: Infinity, colors: true }))
 
     if (tokenResult?.body) {
-      console.error(Buffer.from(await tokenResult.arrayBuffer()).toString());
+      console.error(await tokenResult.text());
     }
 
     return ctx.throw(
@@ -73,6 +73,9 @@ async function handleLink(ctx) {
       `Knudge response: ${ tokenResult?.statusText ?? 'Internal Server Error' }`
     );
   }
+
+  if (tokenResult.bodyUsed)
+    throw new Error('Body used');
 
   const tokenJSON = await tokenResult.json();
   const cookie = generateCookie();
