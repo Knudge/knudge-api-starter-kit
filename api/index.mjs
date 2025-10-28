@@ -14,6 +14,14 @@ import { webSocketManager } from './websocket-manager.mjs';
 const app = new Koa();
 
 app.use(cors({
+  allowMethods: [
+    'DELETE',
+    'GET',
+    'HEAD',
+    'POST',
+    'PUT',
+    'REPORT'
+  ],
   credentials: true,
   exposeHeaders: [
     'server',

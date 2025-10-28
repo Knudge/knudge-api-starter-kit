@@ -4,7 +4,8 @@ import getClient from '../get-client.mjs';
 const BODYABLE = new Set([
   'PATCH',
   'POST',
-  'PUT'
+  'PUT',
+  'REPORT'
 ]);
 
 const PREFIX = '/api/passthrough/';
@@ -41,6 +42,9 @@ export default async function passthrough(ctx) {
   }
 
   let url = `${ KNUDGE_ORIGIN_API }/${ knudgeAPIPath }${ ctx.request.search }`
+  let body = BODYABLE.has(ctx.request.method)
+    ? JSON.stringify(ctx.request.body)
+    : undefined;
 
   let result = await fetch(url, {
     headers: {
@@ -50,9 +54,7 @@ export default async function passthrough(ctx) {
       'knudge-api-version': ctx.headers['knudge-api-version'] ?? '',
       'x-content-format': ctx.headers['x-content-format'] ?? ''
     },
-    body: BODYABLE.has(ctx.request.method)
-      ? JSON.stringify(ctx.request.body)
-      : undefined,
+    body,
     method: ctx.request.method
   });
 
