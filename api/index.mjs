@@ -18,6 +18,8 @@ app.use(cors({
     'DELETE',
     'GET',
     'HEAD',
+    'OPTIONS',
+    'PATCH',
     'POST',
     'PUT',
     'REPORT'
