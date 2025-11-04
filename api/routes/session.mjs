@@ -42,8 +42,20 @@ async function getSession(ctx) {
 
   let { oauthSession } = ctx.state;
 
-  if (!oauthSession) {
-    ctx.status = 404;
+  let selfResult = oauthSession && await fetch(
+    `${ KNUDGE_ORIGIN_API }/v1/self`,
+    {
+      headers: {
+        'authorization': `bearer ${ oauthSession.access_token }`,
+        'accept': 'application/json'
+      },
+      method: 'GET'
+    }
+  );
+
+  if (!selfResult?.ok) {
+    ctx.status = 200;
+    ctx.body = {};
     ctx.cookies.set('sesh', null, {
       domain: HOSTNAME,
       httpOnly: true,
@@ -55,13 +67,9 @@ async function getSession(ctx) {
     return;
   }
 
-  let selfResult = await fetch(`${ KNUDGE_ORIGIN_API }/v1/self`, {
-      headers: {
-        'authorization': `bearer ${ oauthSession.access_token }`,
-        'accept': 'application/json'
-      },
-      method: 'GET'
-  });
+  const resultJSON = await selfResult.json();
 
-  ctx.body = await selfResult.json();
+  ctx.status = selfResult.status;
+  ctx.message = selfResult.statusText;
+  ctx.body = resultJSON;
 }

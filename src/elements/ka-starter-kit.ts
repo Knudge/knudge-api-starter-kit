@@ -356,7 +356,7 @@ export class KnudgeAPIStarterKit extends LitElement {
     return until(
       this.sessionPromise
         ?.then(session => {
-          if (!session) {
+          if (!session?.id) {
             return html`
               <a
                 class="button"
@@ -499,12 +499,13 @@ async function fetchAPIJSON(
       return null;
     }
 
-    let json;
+    let json = null;
 
     try {
       json = await response.json();
     } catch (err) {
       console.error(err);
+      return null;
     }
 
     throw new Error(
@@ -519,6 +520,6 @@ async function fetchAPIJSON(
     return response.json();
   } catch (err: any) {
     console.error(err);
-    throw err;
+    return null;
   }
 }

@@ -48,11 +48,9 @@ export default async function passthrough(ctx) {
 
   let result = await fetch(url, {
     headers: {
+      ...ctx.headers,
       'authorization': authorization,
-      'accept': ctx.headers.accept,
-      'content-type': ctx.headers['content-type'],
-      'knudge-api-version': ctx.headers['knudge-api-version'] ?? '',
-      'x-content-format': ctx.headers['x-content-format'] ?? ''
+      'accept': ctx.headers.accept
     },
     body,
     method: ctx.request.method
