@@ -301,18 +301,22 @@ export class KnudgeAPIStarterKit extends LitElement {
   async webhookInit() {
     const usp = new URLSearchParams(window.location.search);
     const name = usp.get('name');
+    if (!process.env.URL_API) return;
 
-    this.socket = new WebSocket(`wss://${location.host}/ws`);
+    const url = new URL(process.env.URL_API);
+    url.protocol = 'wss';
+    url.pathname = '/ws';
 
-    this.socket.send(
-      JSON.stringify({
-        type: 'webhook-open',
-        name,
-      })
-    );
+    this.socket = new WebSocket(url);
 
     this.socket.addEventListener('open', event => {
       console.log('WebSocket connection established');
+      this.socket?.send(
+        JSON.stringify({
+          type: 'webhook-open',
+          name,
+        })
+      );
     });
 
     this.socket.addEventListener('message', event => {

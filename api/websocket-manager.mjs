@@ -5,6 +5,11 @@ import EventEmitter from 'events';
  */
 
 class WebSocketManager {
+  /** @type {Set<WebSocket>} */
+  clients;
+  /** @type {EventEmitter} */
+  emitter;
+
   constructor() {
     this.clients = new Set();
     this.emitter = new EventEmitter();
@@ -41,7 +46,10 @@ class WebSocketManager {
       console.log('WebSocket client message:', data);
       this.emitter.emit('message', data);
 
-      ws[Symbol.for('name')] = data.name;
+      if (data?.name) {
+        console.log('WebSocket client subscribed:', data.name);
+        ws[Symbol.for('name')] = data.name;
+      }
     });
   }
 
@@ -60,6 +68,8 @@ class WebSocketManager {
       ...data
     });
 
+    let broadcastCount = 0;
+
     for (let client of this.clients) {
       try {
         if (data.name && client[Symbol.for('name')] !== data.name)
@@ -67,6 +77,7 @@ class WebSocketManager {
 
         if (client.readyState === client.OPEN) {
           client.send(message);
+          broadcastCount++;
         } else {
           this.clients.delete(client);
         }
@@ -76,8 +87,10 @@ class WebSocketManager {
       }
     }
 
-
-    console.log(`Broadcasted webhook to ${this.clients.size} clients`);
+    console.log(
+      `Broadcasted webhook to ${ broadcastCount } of ` +
+      `${this.clients.size} clients`
+    );
   }
 
   /**

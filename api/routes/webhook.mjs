@@ -14,7 +14,7 @@ let websockets = new WeakSet();
 /**
  * @param {import('koa').Context} ctx
  */
-export default async function passthrough(ctx) {
+export default async function webhook(ctx) {
   if (!ctx.request.path.startsWith(PREFIX)) {
     return false;
   }

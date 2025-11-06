@@ -2,12 +2,17 @@ import joi from 'joi';
 
 import routes from './routes/routes.mjs'
 import passthrough from './routes/passthrough.mjs'
+import webhook from './routes/webhook.mjs'
 
 export default async function handleAPIRequest(ctx) {
   const routeMethods = routes[ctx.request.path];
 
   if (!routeMethods) {
-    return await passthrough(ctx) || ctx.throw(404, 'Unknown route');
+    return (
+      (await passthrough(ctx)) ||
+      (await webhook(ctx)) ||
+      ctx.throw(404, 'Unknown route')
+    );
   }
 
   const route = routeMethods[ctx.request.method];
