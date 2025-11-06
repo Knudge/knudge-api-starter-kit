@@ -24,7 +24,6 @@ export default async function passthrough(ctx) {
 
   // Broadcast webhook data to WebSocket clients
   const webhookData = {
-    name,
     method: ctx.request.method,
     headers: ctx.headers,
     body: ctx.request.body,
