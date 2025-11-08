@@ -28,8 +28,6 @@ export default async function webhook(ctx) {
     headers: ctx.headers,
     body: ctx.request.body,
     query: ctx.query,
-    timestamp: new Date().toISOString(),
-    type: 'webhook',
     name
   };
 

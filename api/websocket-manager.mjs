@@ -63,10 +63,7 @@ class WebSocketManager {
       return;
     }
 
-    const message = JSON.stringify({
-      timestamp: new Date().toISOString(),
-      ...data
-    });
+    const message = JSON.stringify(data);
 
     let broadcastCount = 0;
 
