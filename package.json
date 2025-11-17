@@ -34,7 +34,7 @@
   },
   "overrides": {
     "devcert": {
-      "rimraf": "^5.0.5",
+      "rimraf": "^6.1.0",
       "tmp": "^0.2.5"
     }
   },
