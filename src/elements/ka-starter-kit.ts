@@ -186,8 +186,8 @@ export class KnudgeAPIStarterKit extends LitElement {
   }
 
   disconnectedCallback(): void {
-    super.disconnectedCallback?.();
     window.removeEventListener('focus', this.handleFocus);
+    super.disconnectedCallback?.();
   }
 
   // EVENT HANDLERS ////////////////////////////////////////////////////////////
