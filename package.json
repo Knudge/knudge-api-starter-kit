@@ -36,6 +36,9 @@
     "devcert": {
       "rimraf": "^6.1.0",
       "tmp": "^0.2.5"
+    },
+    "rollup-plugin-terser": {
+      "serialize-javascript": "^7.0.2"
     }
   },
   "devDependencies": {
