@@ -50,7 +50,8 @@ export default async function passthrough(ctx) {
     headers: {
       ...ctx.headers,
       'authorization': authorization,
-      'accept': ctx.headers.accept
+      'accept': ctx.headers.accept,
+      'origin': ctx.headers['origin-rewrite']
     },
     body,
     method: ctx.request.method
