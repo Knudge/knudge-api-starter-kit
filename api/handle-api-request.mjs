@@ -1,6 +1,7 @@
 import joi from 'joi';
 
 import routes from './routes/routes.mjs'
+import oauthClientMeta from './routes/oauth-client-meta.mjs';
 import passthrough from './routes/passthrough.mjs'
 import webhook from './routes/webhook.mjs'
 
@@ -11,6 +12,7 @@ export default async function handleAPIRequest(ctx) {
     return (
       (await passthrough(ctx)) ||
       (await webhook(ctx)) ||
+      (await oauthClientMeta(ctx)) ||
       ctx.throw(404, 'Unknown route')
     );
   }

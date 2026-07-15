@@ -1,15 +1,7 @@
 import { KNUDGE_ORIGIN_API } from '../../config.mjs';
 import { webSocketManager } from '../websocket-manager.mjs';
 
-const BODYABLE = new Set([
-  'PATCH',
-  'POST',
-  'PUT'
-]);
-
 const PREFIX = '/api/webhook/';
-
-let websockets = new WeakSet();
 
 /**
  * @param {import('koa').Context} ctx
