@@ -1,4 +1,4 @@
-import { KNUDGE_ORIGIN_API } from '../../config.mjs'
+import { KNUDGE_ORIGIN, KNUDGE_ORIGIN_API } from '../../config.mjs'
 import getClient from '../get-client.mjs';
 
 const BODYABLE = new Set([
@@ -45,14 +45,18 @@ export default async function passthrough(ctx) {
   let body = BODYABLE.has(ctx.request.method)
     ? JSON.stringify(ctx.request.body)
     : undefined;
+  let headers = {
+    ...ctx.headers,
+    'authorization': authorization,
+    'accept': ctx.headers.accept,
+  };
 
+  if (ctx.headers['origin-rewrite'])
+    headers.origin = ctx.headers['origin-rewrite'];
+  else
+    delete headers.origin;
   let result = await fetch(url, {
-    headers: {
-      ...ctx.headers,
-      'authorization': authorization,
-      'accept': ctx.headers.accept,
-      'origin': ctx.headers['origin-rewrite']
-    },
+    headers,
     body,
     method: ctx.request.method
   });
