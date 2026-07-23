@@ -25,7 +25,8 @@ export default {
     'POST': {
       handle: handleLink,
       bodySchema: joi.object({
-        code: joi.string().required()
+        code: joi.string().required(),
+        code_verifier: joi.string().min(43).max(128).required()
       }),
       public: true,
       searchParamsSchema: joi.object({
@@ -54,6 +55,7 @@ async function handleLink(ctx) {
     tokenResult = await fetch(`${ KNUDGE_ORIGIN_API }/v1/oauth/token`, {
       body: new URLSearchParams({
         code: body.code,
+        code_verifier: body.code_verifier,
         grant_type: 'authorization_code'
       }).toString(),
       headers: {

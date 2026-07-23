@@ -26,6 +26,29 @@ const SCOPES: string[] = [
 
 const KNUDGE_ORIGIN = process.env.KNUDGE_ORIGIN;
 
+const PKCE_VERIFIER_KEY = 'knudge_pkce_verifier';
+
+async function createPKCE() {
+  let bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  let verifier = base64URLEncode(bytes);
+  let digest = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(verifier)
+  );
+  let challenge = base64URLEncode(new Uint8Array(digest));
+  return { challenge, verifier };
+}
+
+function base64URLEncode(bytes: Uint8Array) {
+  let binary = '';
+  for (let byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
 @customElement('ka-starter-kit')
 export class KnudgeAPIStarterKit extends LitElement {
   static styles = css`
@@ -123,6 +146,8 @@ export class KnudgeAPIStarterKit extends LitElement {
   }
 
   get knudgeURL(): string {
+    // Prefer knudgeURLWithPKCE() for new connections; this sync getter remains
+    // for templates that only need the authorize origin.
     const usp = new URLSearchParams(window.location.search);
     const url = new URL(`${KNUDGE_ORIGIN}/oauth/authorize`);
     const { clientID } = this;
@@ -140,6 +165,16 @@ export class KnudgeAPIStarterKit extends LitElement {
 
     url.searchParams.append('scope', scopes.join(' '));
 
+    return url.toString();
+  }
+
+  async knudgeURLWithPKCE(): Promise<string> {
+    let { challenge, verifier } = await createPKCE();
+    sessionStorage.setItem(PKCE_VERIFIER_KEY, verifier);
+
+    let url = new URL(this.knudgeURL);
+    url.searchParams.set('code_challenge', challenge);
+    url.searchParams.set('code_challenge_method', 'S256');
     return url.toString();
   }
 
@@ -195,7 +230,8 @@ export class KnudgeAPIStarterKit extends LitElement {
   async handleClickConnectKnudgeAccount(event: MouseEvent) {
     event.preventDefault();
     this.connecting = true;
-    await openWindow(this.knudgeURL, 'knudge', this.windowFeatures);
+    let authorizeURL = await this.knudgeURLWithPKCE();
+    await openWindow(authorizeURL, 'knudge', this.windowFeatures);
   }
 
   async handleClickDisconnect() {
@@ -288,8 +324,18 @@ export class KnudgeAPIStarterKit extends LitElement {
       ...(clientID ? [['client_id', clientID]] : []),
     ]);
 
+    const codeVerifier = sessionStorage.getItem(PKCE_VERIFIER_KEY);
+    sessionStorage.removeItem(PKCE_VERIFIER_KEY);
+
+    if (!codeVerifier) {
+      throw new Error('Missing PKCE code_verifier in sessionStorage');
+    }
+
     const result = await fetchAPI(`/oauth/knudge?${uspClient}`, {
-      body: { code },
+      body: {
+        code,
+        code_verifier: codeVerifier,
+      },
       method: 'POST',
     });
 
