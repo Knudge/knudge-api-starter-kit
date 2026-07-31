@@ -414,9 +414,8 @@ export class KnudgeAPIStarterKit extends LitElement {
                 class="button"
                 @click="${this.handleClickConnectKnudgeAccount}"
                 href="${this.knudgeURL}"
+                >Connect Knudge account</a
               >
-                Connect Knudge account
-              </a>
             `;
           }
 
