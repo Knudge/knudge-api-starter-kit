@@ -4,7 +4,13 @@ import https from 'node:https';
 import cors from '@koa/cors';
 import { WebSocketServer } from 'ws';
 
-import { CERTIFICATE, KNUDGE_ORIGIN_API, URL_WEB } from '../config.mjs';
+import {
+  CERTIFICATE,
+  HOSTNAME,
+  KNUDGE_ORIGIN_API,
+  PORT_API,
+  URL_WEB
+} from '../config.mjs';
 
 import * as kvStore from './fs-key-value-store.mjs';
 import handleAPIRequest from './handle-api-request.mjs';
@@ -70,8 +76,21 @@ app.use(async (ctx, next) => {
           });
 
           try {
-            sessionData = await tokenResult.json();
-            await kvStore.write(sessionStorageKey, JSON.stringify(sessionData));
+            if (!tokenResult.ok) {
+              console.error(
+                'Token refresh failed:',
+                tokenResult.status,
+                await tokenResult.text()
+              );
+              await kvStore.remove(sessionStorageKey);
+              sessionData = null;
+            } else {
+              sessionData = await tokenResult.json();
+              await kvStore.write(
+                sessionStorageKey,
+                JSON.stringify(sessionData)
+              );
+            }
           } catch (err) {
             console.error(err);
             await kvStore.remove(sessionStorageKey);
@@ -87,14 +106,14 @@ app.use(async (ctx, next) => {
     }
 
     if (!ctx.state.oauthSession) {
-      // ctx.cookies.set('sesh', null, {
-      //   domain: HOSTNAME,
-      //   httpOnly: true,
-      //   maxAge: 1000 * 60 * 60 * 24 * 14,
-      //   overwrite: true,
-      //   sameSite: 'lax',
-      //   secure: true
-      // });
+      ctx.cookies.set('sesh', null, {
+        domain: HOSTNAME,
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 14,
+        overwrite: true,
+        sameSite: 'lax',
+        secure: true
+      });
     }
   }
 
@@ -132,9 +151,9 @@ wss.on('connection', (ws, req) => {
   webSocketManager.addClient(ws);
 });
 
-wss.on('close', (ws) => {
-  console.log('WebSocket connection closed');
-  webSocketManager.removeClient(ws);
+wss.on('close', () => {
+  console.log('WebSocket server closed');
+  webSocketManager.closeAll();
 });
 
 // Handle WebSocket server errors
@@ -144,7 +163,9 @@ wss.on('error', (error) => {
 
 server
   .once('listening', () => {
-    console.log('API server listening on port 10443');
-    console.log('WebSocket server available at wss://localhost:10443/ws');
+    console.log(`API server listening on port ${ PORT_API }`);
+    console.log(
+      `WebSocket server available at wss://localhost:${ PORT_API }/ws`
+    );
   })
-  .listen(10443);
+  .listen(Number(PORT_API));

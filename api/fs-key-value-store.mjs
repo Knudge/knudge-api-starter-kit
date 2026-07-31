@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 const DB_PATH = `./.tmp/db`;
 
 export async function remove(key) {
-  await fs.rm(getPath(key));
+  await fs.rm(getPath(key), { force: true });
 }
 
 export async function write(key, data) {

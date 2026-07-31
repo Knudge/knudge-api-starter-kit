@@ -103,8 +103,19 @@ async function handleLink(ctx) {
 
 async function handleUnlink(ctx) {
   let cookie = ctx.cookies.get('sesh');
-  ctx.cookies.set('sesh', null);
-  await kvStore.remove(`session-${ cookie }`);
+
+  if (cookie)
+    await kvStore.remove(`sesh-${ cookie }`);
+
+  ctx.cookies.set('sesh', null, {
+    domain: HOSTNAME,
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 * 14,
+    overwrite: true,
+    sameSite: 'lax',
+    secure: true
+  });
+  ctx.status = 204;
 }
 
 /**
@@ -117,10 +128,19 @@ async function handleUnlink(ctx) {
  */
 async function handleRefresh(ctx) {
   let tokenResult;
+  const cookie = ctx.cookies.get('sesh');
+
+  if (!cookie)
+    return ctx.throw(401, 'Login required');
 
   try {
     let { authorizationBase64 } = await getClient(ctx);
-    let { refresh_token } = JSON.parse(await kvStore.read(`sesh-${ cookie }`));
+    let sessionRaw = await kvStore.read(`sesh-${ cookie }`);
+
+    if (!sessionRaw)
+      return ctx.throw(401, 'Login required');
+
+    let { refresh_token } = JSON.parse(sessionRaw);
 
     tokenResult = await fetch(`${ KNUDGE_ORIGIN_API }/v1/oauth/token`, {
       body: new URLSearchParams({
@@ -155,9 +175,8 @@ async function handleRefresh(ctx) {
     throw new Error('Body used');
 
   const tokenJSON = await tokenResult.json();
-  const cookie = generateCookie();
 
-  // Update our copy of the token with the latest data
+  // Update our copy of the token under the existing session cookie
   await kvStore.write(`sesh-${ cookie }`, JSON.stringify(tokenJSON, null, 2));
 
   ctx.status = 200;

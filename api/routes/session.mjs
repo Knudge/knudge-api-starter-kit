@@ -1,4 +1,5 @@
 import { HOSTNAME, KNUDGE_ORIGIN_API } from '../../config.mjs'
+import * as kvStore from '../fs-key-value-store.mjs';
 
 // ROUTES //////////////////////////////////////////////////////////////////////
 
@@ -6,7 +7,9 @@ import { HOSTNAME, KNUDGE_ORIGIN_API } from '../../config.mjs'
 export default {
   '/api/session': {
     'DELETE': {
-      handle: deleteSession
+      // Public so a broken/expired session cookie can still be cleared.
+      handle: deleteSession,
+      public: true
     },
     'GET': {
       handle: getSession,
@@ -19,7 +22,11 @@ export default {
 
 /** @param {import('koa').Context} ctx */
 async function deleteSession(ctx) {
-  ctx.status = 404;
+  let cookie = ctx.cookies.get('sesh');
+
+  if (cookie)
+    await kvStore.remove(`sesh-${ cookie }`);
+
   ctx.cookies.set('sesh', null, {
     domain: HOSTNAME,
     httpOnly: true,
@@ -28,7 +35,7 @@ async function deleteSession(ctx) {
     sameSite: 'lax',
     secure: true
   });
-  return;
+  ctx.status = 204;
 }
 
 /** @param {import('koa').Context} ctx */
@@ -54,6 +61,9 @@ async function getSession(ctx) {
   );
 
   if (!selfResult?.ok) {
+    if (cookie)
+      await kvStore.remove(`sesh-${ cookie }`);
+
     ctx.status = 200;
     ctx.body = {};
     ctx.cookies.set('sesh', null, {

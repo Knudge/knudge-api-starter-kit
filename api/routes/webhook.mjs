@@ -1,4 +1,3 @@
-import { KNUDGE_ORIGIN_API } from '../../config.mjs';
 import { webSocketManager } from '../websocket-manager.mjs';
 
 const PREFIX = '/api/webhook/';
@@ -11,8 +10,18 @@ export default async function webhook(ctx) {
     return false;
   }
 
+  // Optional receiver auth matching Pubic webhook-registration
+  // `headerAuthBasic` (joined with ':' and base64'd into Authorization).
+  // Set WEBHOOK_AUTH_BASIC=part1:part2 in .env to require it.
+  let webhookAuthBasic = process.env.WEBHOOK_AUTH_BASIC;
+  if (webhookAuthBasic) {
+    let expected =
+      `Basic ${ Buffer.from(webhookAuthBasic).toString('base64') }`;
+    if (ctx.get('authorization') !== expected)
+      return ctx.throw(401, 'Unauthorized webhook');
+  }
+
   const name = ctx.request.path.substring(PREFIX.length);
-  const { oauthSession } = ctx.state;
 
   // Broadcast webhook data to WebSocket clients
   const webhookData = {

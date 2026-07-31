@@ -104,7 +104,7 @@ class WebSocketManager {
   closeAll() {
     for (let client of this.clients) {
       try {
-        ws.close();
+        client.close();
       } catch (error) {
         console.error('Error closing WebSocket client:', error);
       }

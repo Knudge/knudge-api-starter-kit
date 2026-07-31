@@ -20,7 +20,7 @@ const JWKS = {
 /**
  * @param {import('koa').Context} ctx
  */
-export default async function webhook(ctx) {
+export default async function oauthClientMeta(ctx) {
   let match = PATH_PATTERN.exec(ctx.request.path);
 
   if (!match) return false;

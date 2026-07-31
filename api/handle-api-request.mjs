@@ -28,11 +28,16 @@ export default async function handleAPIRequest(ctx) {
   }
 
   if (route.bodySchema) {
-    joi.attempt(ctx.body, route.bodySchema, { stripUnknown: true });
+    ctx.request.body = joi.attempt(
+      ctx.request.body,
+      route.bodySchema,
+      { stripUnknown: true }
+    );
   }
 
-  if (route.searchParamSchema) {
-    joi.attempt(ctx.search, route.searchParamSchema, { stripUnknown: true });
+  if (route.searchParamsSchema) {
+    // Prefer parsed query over the raw search string.
+    joi.attempt(ctx.query, route.searchParamsSchema, { stripUnknown: true });
   }
 
   ctx.set('content-type', 'application/json');
