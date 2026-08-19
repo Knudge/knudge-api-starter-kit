@@ -10,6 +10,16 @@ const BODYABLE = new Set([
 
 const PREFIX = '/api/passthrough/';
 
+// Node fetch decompresses gzip/br but leaves these on the Response. Forwarding
+// them makes the browser decode already-plain JSON ("Load failed").
+const SKIP_RESPONSE_HEADERS = new Set([
+  'connection',
+  'content-encoding',
+  'content-length',
+  'keep-alive',
+  'transfer-encoding'
+]);
+
 /**
  * @param {import('koa').Context} ctx
  */
@@ -49,6 +59,8 @@ export default async function passthrough(ctx) {
     ...ctx.headers,
     'authorization': authorization,
     'accept': ctx.headers.accept,
+    // We parse JSON below; skip a compress/decompress round trip.
+    'accept-encoding': 'identity'
   };
 
   if (ctx.headers['origin-rewrite'])
@@ -61,7 +73,10 @@ export default async function passthrough(ctx) {
     method: ctx.request.method
   });
 
-  result.headers.forEach((value, key) => ctx.set(key, value));
+  result.headers.forEach((value, key) => {
+    if (!SKIP_RESPONSE_HEADERS.has(key))
+      ctx.set(key, value);
+  });
   ctx.status = result.status;
   ctx.message = result.statusText;
   ctx.response.set('content-type', result.headers.get('content-type'));
