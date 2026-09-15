@@ -33,6 +33,8 @@ app.use(cors({
   credentials: true,
   exposeHeaders: [
     'server',
+    'www-authenticate',
+    'x-oauth-scopes',
     'x-page-last-before',
     'x-page-next-after',
     'x-total-count',
