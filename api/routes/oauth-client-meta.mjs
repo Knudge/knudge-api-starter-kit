@@ -2,7 +2,8 @@ import crypto from 'node:crypto';
 
 import { ORIGIN_API, ORIGIN_WEB } from '../../config.mjs';
 
-const PATH_PATTERN = /^\/api\/oauth\/client-meta\/([a-zA-Z0-9]+)\.json$/;
+const PATH_PATTERN =
+  /^\/api\/oauth\/client-meta\/(?:(public)\/)?([a-zA-Z0-9]+)\.json$/;
 
 // Stable-for-process public JWKS so CIMD docs satisfy Knudge validation.
 const { publicKey } = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
@@ -25,15 +26,16 @@ export default async function oauthClientMeta(ctx) {
 
   if (!match) return false;
 
-  let [, clientID] = match;
+  let [, visibility, clientID] = match;
+  let isPublic = visibility === 'public';
 
   ctx.status = 200;
   ctx.body = {
     client_id: new URL(ctx.request.path, ORIGIN_API).href,
     client_name: `Knudge Starter Kit Generated ${clientID}`,
-    jwks: JWKS,
+    ...isPublic ? {} : { jwks: JWKS },
     redirect_uris: [new URL('/oauth/knudge', ORIGIN_WEB).href],
-    token_endpoint_auth_method: 'private_key_jwt',
+    token_endpoint_auth_method: isPublic ? 'none' : 'private_key_jwt',
   };
 
   return true;
