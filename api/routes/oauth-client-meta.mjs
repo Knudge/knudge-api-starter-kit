@@ -35,6 +35,12 @@ export default async function oauthClientMeta(ctx) {
     client_name: `Knudge Starter Kit Generated ${clientID}`,
     ...isPublic ? {} : { jwks: JWKS },
     redirect_uris: [new URL('/oauth/knudge', ORIGIN_WEB).href],
+    grant_types: [
+      'authorization_code',
+      'refresh_token',
+      'urn:ietf:params:oauth:grant-type:jwt-bearer',
+    ],
+    response_types: ['code'],
     token_endpoint_auth_method: isPublic ? 'none' : 'private_key_jwt',
   };
 
